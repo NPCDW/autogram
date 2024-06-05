@@ -1,4 +1,4 @@
-FROM debian:82f8da149d6d567c74564cccd6f355fb5ade42a958e4cde10a1100eaeb24d42e AS tdlib-build
+FROM debian@sha256:82f8da149d6d567c74564cccd6f355fb5ade42a958e4cde10a1100eaeb24d42e AS tdlib-build
 
 WORKDIR /usr/src/
 
