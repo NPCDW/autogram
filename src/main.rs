@@ -8,8 +8,10 @@ use tdlib::{
 };
 use tokio::sync::mpsc::{self, Receiver, Sender};
 
+mod config;
+
 fn ask_user(string: &str) -> String {
-    println!("{}", string);
+    tracing::info!("{}", string);
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     input.trim().to_string()
@@ -34,7 +36,7 @@ async fn handle_authorization_state(
             AuthorizationState::WaitTdlibParameters => {
                 let response = functions::set_tdlib_parameters(
                     false,
-                    "get_me_db".into(),
+                    "db".into(),
                     String::new(),
                     String::new(),
                     false,
@@ -54,24 +56,24 @@ async fn handle_authorization_state(
                 .await;
 
                 if let Err(error) = response {
-                    println!("{}", error.message);
+                    tracing::error!("{}", error.message);
                 }
             }
             AuthorizationState::WaitPhoneNumber => loop {
-                let input = ask_user("Enter your phone number (include the country calling code):");
+                let input = ask_user("请输入你的手机号 (包含国家代码，例如: +86):");
                 let response =
                     functions::set_authentication_phone_number(input, None, client_id).await;
                 match response {
                     Ok(_) => break,
-                    Err(e) => println!("{}", e.message),
+                    Err(e) => tracing::error!("{}", e.message),
                 }
             },
             AuthorizationState::WaitCode(_) => loop {
-                let input = ask_user("Enter the verification code:");
+                let input = ask_user("输入验证码:");
                 let response = functions::check_authentication_code(input, client_id).await;
                 match response {
                     Ok(_) => break,
-                    Err(e) => println!("{}", e.message),
+                    Err(e) => tracing::error!("{}", e.message),
                 }
             },
             AuthorizationState::Ready => {
@@ -92,6 +94,8 @@ async fn handle_authorization_state(
 
 #[tokio::main]
 async fn main() {
+    config::log::init();
+
     // Create the client object
     let client_id = tdlib::create_client();
 
@@ -124,7 +128,21 @@ async fn main() {
 
     // Run the get_me() method to get user information
     let User::User(me) = functions::get_me(client_id).await.unwrap();
-    println!("Hi, I'm {}", me.first_name);
+    tracing::info!("Hi, I'm {}", me.first_name);
+
+    let chats = functions::get_chats(None, 20, client_id).await;
+    if chats.is_err() {
+        tracing::error!("获取前二十个聊天列表失败: {:?}", chats.as_ref().err())
+    }
+    let tdlib::enums::Chats::Chats(chats) = chats.unwrap();
+    for chat_id in chats.chat_ids {
+        let chat = functions::get_chat(chat_id, client_id).await;
+        if chat.is_err() {
+            tracing::error!("获取 id 为 {} 的聊天失败: {:?}", chat_id, chat.as_ref().err())
+        }
+        let tdlib::enums::Chat::Chat(chat) = chat.unwrap();
+        tracing::info!("title: {} id: {}", chat.title, chat.id);
+    }
 
     // Tell the client to close
     functions::close(client_id).await.unwrap();

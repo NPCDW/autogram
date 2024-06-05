@@ -1,24 +1,22 @@
-准备安装依赖
-```bash
-apt update && apt upgrade
-apt-get install -y gcc
-apt install -y pkg-config
-apt install -y cmake
-apt-get install -y g++
-apt-get install -y gperf
-apt-get install -y libssl-dev
-apt install -y zlib1g-dev
+# Autogram
 
-cd /usr/src/
-git clone https://github.com/tdlib/td.git
-cd td/
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
-cp pkgconfig/* /usr/lib/pkgconfig/
-cp libtdjson.so* /usr/local/lib/
-ldconfig
+# 开发
+
+编译安装 `tdlib` 依赖
+```bash
+sudo apt update && sudo apt upgrade
+sudo apt-get install -y gcc pkg-config cmake g++ gperf libssl-dev zlib1g-dev
+
+sudo cd /usr/src/
+sudo git clone https://github.com/tdlib/td.git
+sudo cd td/
+sudo mkdir build
+sudo cd build
+sudo cmake -DCMAKE_BUILD_TYPE=Release ..
+sudo cmake --build .
+sudo cp pkgconfig/* /usr/lib/pkgconfig/
+sudo cp libtdjson.so* /usr/local/lib/
+sudo ldconfig
 ```
 
 添加环境变量，编辑 `/etc/profile` 文件
