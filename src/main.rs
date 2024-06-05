@@ -17,14 +17,11 @@ fn ask_user(string: &str) -> String {
     input.trim().to_string()
 }
 
-async fn handle_update(update: Update, auth_tx: &Sender<AuthorizationState>, msg_tx: &Sender<tdlib::types::Message>) {
+async fn handle_update(update: Update, auth_tx: &Sender<AuthorizationState>) {
     match update {
         Update::AuthorizationState(update) => {
             auth_tx.send(update.authorization_state).await.unwrap();
         },
-        Update::NewMessage(new_message) => {
-            msg_tx.send(new_message.message).await.unwrap();
-        }
         _ => (),
     }
 }
@@ -111,7 +108,6 @@ async fn main() {
     // Create a mpsc channel for handling AuthorizationState updates separately
     // from the task
     let (auth_tx, auth_rx) = mpsc::channel(5);
-    let (msg_tx, mut msg_rx) = mpsc::channel(50);
 
     // Create a flag to make it possible to stop receiving updates
     let run_flag = Arc::new(AtomicBool::new(true));
@@ -121,7 +117,7 @@ async fn main() {
     let handle = tokio::spawn(async move {
         while run_flag_clone.load(Ordering::Acquire) {
             if let Some((update, _client_id)) = tdlib::receive() {
-                handle_update(update, &auth_tx, &msg_tx).await;
+                handle_update(update, &auth_tx).await;
             }
         }
     });
@@ -172,15 +168,6 @@ async fn main() {
         }
         let tdlib::enums::Message::Message(message) = message.unwrap();
         tracing::info!("message id: {} content: {:?}", message.id, message.content);
-        while let Some(msg) = msg_rx.recv().await {
-            if let Some(tdlib::enums::MessageReplyTo::Message(reply)) = &msg.reply_to {
-                if reply.message_id == message.id {
-                    tracing::info!("收到一条重要消息: {} {:?}", msg.id, msg.content);
-                    break;
-                }
-            }
-            tracing::info!("收到一条新消息: {} {:?} {:?} {:?} {:?}", msg.id, msg.content, msg.reply_to, msg.reply_markup, msg.sender_id);
-        }
     } else {
         tracing::info!("AKILE_CHAT_ID 环境变量配置错误，跳过 akile 签到， AKILE_CHAT_ID: {:?}", akile_chat_id);
     }

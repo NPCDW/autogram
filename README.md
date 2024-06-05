@@ -2,11 +2,22 @@
 
 # 功能
 
-使用任何功能都需要先去 [telegram api](https://my.telegram.org/apps) 网站申请一个客户端，需要用家宽申请，使用代理会报错 ERROR。
-然后在环境变量中配置 `API_ID` 和 `API_HASH`
-
 当前支持
-- akile 自动签到，需要配置 `AKILE_CHAT_ID` 如果不知道此ID，可以先运行程序，会打印前二十个聊天的ID，找到之后配置
+- akile 自动签到
+
+# 使用
+
+使用任何功能都需要先去 [telegram api](https://my.telegram.org/apps) 网站申请一个客户端，需要用家宽申请，使用代理会报错 ERROR。
+
+任意位置新建 `autogram` 文件夹，将 [docker-compose.yml](./docker-compose.yml) 文件复制到此文件夹，并修改环境变量字段，必须配置 `API_ID` 和 `API_HASH` ，其他环境变量可以在登录后选择配置，执行命令
+```bash
+docker compose pull
+docker compose run --rm -it autogram autogram
+```
+输入手机号和验证码登录，之后就可以启动程序了
+```bash
+docker compose up -d
+```
 
 # 开发
 

@@ -8,3 +8,6 @@ services:
       TZ : 'Asia/Shanghai'
       LANG: 'C.UTF-8'
       LC_ALL: 'C.UTF-8'
+      API_ID: 12345678
+      API_HASH: 1234567890abcdef1234567890abcdef
+      AKILE_CHAT_ID: -1234567890123
