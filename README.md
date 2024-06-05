@@ -9,9 +9,9 @@ sudo apt-get install -y gcc pkg-config cmake g++ gperf libssl-dev zlib1g-dev
 
 sudo cd /usr/src/
 sudo git clone https://github.com/tdlib/td.git
-sudo cd td/
-sudo mkdir build
-sudo cd build
+cd td/
+git checkout 2589c3fd46925f5d57e4ec79233cd1bd0f5d0c09         # tdlib = "0.10.0" 对应此版本
+sudo mkdir build && cd build
 sudo cmake -DCMAKE_BUILD_TYPE=Release ..
 sudo cmake --build .
 sudo cp pkgconfig/* /usr/lib/pkgconfig/
