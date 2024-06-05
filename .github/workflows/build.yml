@@ -31,3 +31,5 @@ jobs:
           tags: |
             npcdw/autogram:${{ github.ref_name }}
             npcdw/autogram:latest
+          cache-from: type=registry,ref=npcdw/autogram:buildcache
+          cache-to: type=registry,ref=npcdw/autogram:buildcache,mode=max
