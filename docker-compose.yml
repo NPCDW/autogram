@@ -1,0 +1,10 @@
+services:
+  autogram:
+    image: npcdw/autogram:latest
+    container_name: autogram
+    volumes:
+      - "${PWD}/data/:/autogram/"
+    environment:
+      TZ : 'Asia/Shanghai'
+      LANG: 'C.UTF-8'
+      LC_ALL: 'C.UTF-8'
