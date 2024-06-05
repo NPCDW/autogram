@@ -3,7 +3,7 @@ FROM debian@sha256:82f8da149d6d567c74564cccd6f355fb5ade42a958e4cde10a1100eaeb24d
 WORKDIR /usr/src/
 
 RUN apt-get update
-RUN apt-get install -y gcc pkg-config cmake g++ gperf libssl-dev zlib1g-dev
+RUN apt-get install -y gcc pkg-config cmake g++ gperf libssl-dev zlib1g-dev git
 RUN git clone https://github.com/tdlib/td.git
 WORKDIR /usr/src/td/
 RUN git checkout 2589c3fd46925f5d57e4ec79233cd1bd0f5d0c09
