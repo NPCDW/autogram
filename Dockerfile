@@ -8,7 +8,7 @@ RUN git clone https://github.com/tdlib/td.git
 WORKDIR /usr/src/td/
 RUN git checkout 2589c3fd46925f5d57e4ec79233cd1bd0f5d0c09
 RUN mkdir build
-RUN /usr/src/td/build/
+WORKDIR /usr/src/td/build/
 RUN cmake -DCMAKE_BUILD_TYPE=Release ..
 RUN cmake --build .
 CMD exec /usr/local/bin/autogram
