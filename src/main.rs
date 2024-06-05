@@ -17,10 +17,13 @@ fn ask_user(string: &str) -> String {
     input.trim().to_string()
 }
 
-async fn handle_update(update: Update, auth_tx: &Sender<AuthorizationState>) {
+async fn handle_update(update: Update, auth_tx: &Sender<AuthorizationState>, msg_tx: &Sender<tdlib::types::Message>) {
     match update {
         Update::AuthorizationState(update) => {
             auth_tx.send(update.authorization_state).await.unwrap();
+        },
+        Update::NewMessage(new_message) => {
+            msg_tx.send(new_message.message).await.unwrap();
         }
         _ => (),
     }
@@ -43,8 +46,8 @@ async fn handle_authorization_state(
                     false,
                     false,
                     false,
-                    env!("API_ID").parse().unwrap(),
-                    env!("API_HASH").into(),
+                    std::env::var("API_ID").unwrap().parse().unwrap(),
+                    std::env::var("API_HASH").unwrap().into(),
                     "en".into(),
                     "Desktop".into(),
                     String::new(),
@@ -96,12 +99,19 @@ async fn handle_authorization_state(
 async fn main() {
     config::log::init();
 
+    let api_id = std::env::var("API_ID");
+    let api_hash = std::env::var("API_HASH");
+    if api_id.is_err() || api_hash.is_err() {
+        panic!("请正确配置 API_ID 和 API_HASH 环境变量，当前 API_ID: {:?} API_HASH: {:?}", api_id, api_hash);
+    }
+
     // Create the client object
     let client_id = tdlib::create_client();
 
     // Create a mpsc channel for handling AuthorizationState updates separately
     // from the task
     let (auth_tx, auth_rx) = mpsc::channel(5);
+    let (msg_tx, mut msg_rx) = mpsc::channel(50);
 
     // Create a flag to make it possible to stop receiving updates
     let run_flag = Arc::new(AtomicBool::new(true));
@@ -111,7 +121,7 @@ async fn main() {
     let handle = tokio::spawn(async move {
         while run_flag_clone.load(Ordering::Acquire) {
             if let Some((update, _client_id)) = tdlib::receive() {
-                handle_update(update, &auth_tx).await;
+                handle_update(update, &auth_tx, &msg_tx).await;
             }
         }
     });
@@ -143,6 +153,39 @@ async fn main() {
         let tdlib::enums::Chat::Chat(chat) = chat.unwrap();
         tracing::info!("title: {} id: {}", chat.title, chat.id);
     }
+
+    let akile_chat_id = std::env::var("AKILE_CHAT_ID");
+    if akile_chat_id.is_ok() {
+        let akile_chat_id = akile_chat_id.unwrap().parse().unwrap();
+        functions::open_chat(akile_chat_id, client_id).await.unwrap();
+        let message = functions::send_message(akile_chat_id, 0, None, None, None,
+            tdlib::enums::InputMessageContent::InputMessageText(tdlib::types::InputMessageText {
+                text: tdlib::types::FormattedText {
+                    text: "/checkin@akilecloud_bot".to_string(),
+                    entities: vec![]
+                },
+                disable_web_page_preview: true,
+                clear_draft: true
+            }), client_id).await;
+        if message.is_err() {
+            tracing::error!("发送 akile 签到失败: {:?}", message.as_ref().err())
+        }
+        let tdlib::enums::Message::Message(message) = message.unwrap();
+        tracing::info!("message id: {} content: {:?}", message.id, message.content);
+        while let Some(msg) = msg_rx.recv().await {
+            if let Some(tdlib::enums::MessageReplyTo::Message(reply)) = &msg.reply_to {
+                if reply.message_id == message.id {
+                    tracing::info!("收到一条重要消息: {} {:?}", msg.id, msg.content);
+                    break;
+                }
+            }
+            tracing::info!("收到一条新消息: {} {:?} {:?} {:?} {:?}", msg.id, msg.content, msg.reply_to, msg.reply_markup, msg.sender_id);
+        }
+    } else {
+        tracing::info!("AKILE_CHAT_ID 环境变量配置错误，跳过 akile 签到， AKILE_CHAT_ID: {:?}", akile_chat_id);
+    }
+    
+
 
     // Tell the client to close
     functions::close(client_id).await.unwrap();
