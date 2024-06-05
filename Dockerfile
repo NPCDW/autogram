@@ -37,6 +37,7 @@ FROM debian:bookworm-slim
 
 WORKDIR /autogram
 
+COPY --from=tdlib-build /usr/src/td/build/libtdjson.so* /usr/local/lib/
 COPY --from=rust-build /usr/src/autogram/target/release/autogram /usr/local/bin/autogram
 
 RUN apt-get update
