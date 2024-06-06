@@ -8,6 +8,8 @@ mod service;
 async fn main() {
     config::log_conf::init();
 
+    service::signal_svc::handle();
+
     let api_id = std::env::var("API_ID");
     let api_hash = std::env::var("API_HASH");
     if api_id.is_err() || api_hash.is_err() {
@@ -16,20 +18,18 @@ async fn main() {
 
     let args = config::args_conf::Args::parse();
 
-    let inti_data = service::init_svc::init().await;
-
-    service::signal_svc::handle(inti_data.clone());
-
+    let inti_data;
     match args.command {
-        AppCommand::Login(login_args) => {
-            service::login_svc::login(inti_data.clone(), login_args).await;
+        AppCommand::Login(_) => {
+            inti_data = service::init_svc::init(false).await;
         },
         AppCommand::Start => {
+            inti_data = service::init_svc::init(true).await;
             let res = service::hello_svc::hello(inti_data.client_id).await;
-            if res.is_err() {
-                return;
+            if res.is_ok() {
+                service::akile_svc::checkin(inti_data.client_id).await;
             }
-            service::akile_svc::checkin(inti_data.client_id).await;
         },
     }
+    service::init_svc::logout(inti_data).await;
 }

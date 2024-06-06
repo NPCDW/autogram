@@ -43,4 +43,5 @@ COPY --from=rust-build /usr/src/autogram/target/release/autogram /usr/local/bin/
 RUN apt-get update
 RUN apt-get install -y openssl ca-certificates
 
-CMD exec /usr/local/bin/autogram
+ENTRYPOINT exec /usr/local/bin/autogram
+CMD start
