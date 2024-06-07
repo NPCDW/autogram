@@ -32,8 +32,11 @@ async fn main() {
         },
         AppCommand::Start => {
             inti_data = service::init_svc::init(true).await;
-            service::akile_svc::checkin(inti_data.client_id).await;
+            let res = service::akile_svc::checkin(inti_data.client_id).await;
+            if res.is_err() {
+                tracing::error!("Akile 自动签到失败: {:?}", res.err());
+            }
         },
     }
-    service::init_svc::logout(inti_data).await;
+    service::init_svc::close(inti_data).await;
 }
