@@ -3,15 +3,17 @@ use clap::{Parser, Subcommand};
 #[derive(Subcommand)]
 pub enum AppCommand {
     #[command()]
-    Login(LoginArgs),
+    Login,
+    #[command()]
+    Chats(ChatsArgs),
     #[command()]
     Start,
 }
 
 #[derive(Parser)]
-pub struct LoginArgs {
-    #[arg(short, long)]
-    pub phone: Option<String>,
+pub struct ChatsArgs {
+    #[arg(short, long, default_value_t = 20)]
+    pub top: i32,
 }
 
 #[derive(Parser)]

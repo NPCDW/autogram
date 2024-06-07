@@ -12,7 +12,8 @@
 任意位置新建 `autogram` 文件夹，将 [docker-compose.yml](./docker-compose.yml) 文件复制到此文件夹，并修改环境变量字段，必须配置 `API_ID` 和 `API_HASH` ，其他环境变量可以在登录后选择配置，执行命令
 ```bash
 docker compose pull
-docker compose run --rm -it autogram login
+docker compose run --rm -it autogram login            # 登录你自动化的账户，API_ID 相当于你申请的网站，login 相当于在你的网站上登录你的账户
+docker compose run --rm -it autogram chats            # 查看前几个聊天组的ID和标题，用于配置自动化，默认前20，可以使用 --top 50 参数指定
 ```
 输入手机号和验证码登录，之后就可以启动程序了
 ```bash

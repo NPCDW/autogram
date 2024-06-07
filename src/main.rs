@@ -20,15 +20,19 @@ async fn main() {
 
     let inti_data;
     match args.command {
-        AppCommand::Login(_) => {
+        AppCommand::Login => {
             inti_data = service::init_svc::init(false).await;
+        },
+        AppCommand::Chats(param) => {
+            inti_data = service::init_svc::init(true).await;
+            let res = service::chats_svc::top(inti_data.client_id, param.top).await;
+            if res.is_err() {
+                tracing::error!("获取聊天列表失败: {:?}", res.err());
+            }
         },
         AppCommand::Start => {
             inti_data = service::init_svc::init(true).await;
-            let res = service::hello_svc::hello(inti_data.client_id).await;
-            if res.is_ok() {
-                service::akile_svc::checkin(inti_data.client_id).await;
-            }
+            service::akile_svc::checkin(inti_data.client_id).await;
         },
     }
     service::init_svc::logout(inti_data).await;
