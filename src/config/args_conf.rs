@@ -7,6 +7,8 @@ pub enum AppCommand {
     #[command()]
     Chats(ChatsArgs),
     #[command()]
+    Chat(ChatArgs),
+    #[command()]
     Start,
 }
 
@@ -14,6 +16,14 @@ pub enum AppCommand {
 pub struct ChatsArgs {
     #[arg(short, long, default_value_t = 20)]
     pub top: i32,
+}
+
+#[derive(Parser)]
+pub struct ChatArgs {
+    #[arg(short, long)]
+    pub chat_id: i64,
+    #[arg(short, long)]
+    pub message: String,
 }
 
 #[derive(Parser)]

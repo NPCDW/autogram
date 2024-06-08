@@ -30,6 +30,13 @@ async fn main() {
                 tracing::error!("获取聊天列表失败: {:?}", res.err());
             }
         },
+        AppCommand::Chat(param) => {
+            inti_data = service::init_svc::init(true).await;
+            let res = service::chat_svc::chat(inti_data.client_id, param).await;
+            if res.is_err() {
+                tracing::error!("获取聊天列表失败: {:?}", res.err());
+            }
+        },
         AppCommand::Start => {
             inti_data = service::init_svc::init(true).await;
             let res = service::akile_svc::checkin(inti_data.client_id).await;
