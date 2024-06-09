@@ -91,18 +91,29 @@ pub async fn handle_authorization_state(
                     Err(e) => tracing::error!("{}", e.message),
                 }
             },
+            AuthorizationState::WaitPassword(_) => loop {
+                let input = ask_user("输入两步验证密码:");
+                let response = functions::check_authentication_password(input, client_id).await;
+                match response {
+                    Ok(_) => break,
+                    Err(e) => tracing::error!("{}", e.message),
+                }
+            },
             AuthorizationState::Ready => {
                 let User::User(me) = functions::get_me(client_id).await.unwrap();
                 tracing::info!("Login successful [{}]", me.first_name);
                 break;
-            }
+            },
+            AuthorizationState::Closing => (),
             AuthorizationState::Closed => {
                 // Set the flag to false to stop receiving updates from the
                 // spawned task
                 run_flag.write().await.store(false, Ordering::Release);
                 break;
-            }
-            _ => (),
+            },
+            _ => {
+                tracing::info!("未捕获的授权状态: {:?}", state);
+            },
         }
     }
 }
