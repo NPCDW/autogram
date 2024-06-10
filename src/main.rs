@@ -18,32 +18,37 @@ async fn main() {
 
     let args = config::args_conf::Args::parse();
 
-    let inti_data;
+    let init_data = match args.command {
+        AppCommand::Login => service::init_svc::init(false).await,
+        _ => service::init_svc::init(true).await,
+    };
+
     match args.command {
-        AppCommand::Login => {
-            inti_data = service::init_svc::init(false).await;
-        },
         AppCommand::Chats(param) => {
-            inti_data = service::init_svc::init(true).await;
-            let res = service::chats_svc::top(inti_data.client_id, param.top).await;
+            let res = service::chats_svc::top(init_data.client_id, param.top).await;
             if res.is_err() {
                 tracing::error!("获取聊天列表失败: {:?}", res.err());
             }
         },
         AppCommand::Chat(param) => {
-            inti_data = service::init_svc::init(true).await;
-            let res = service::chat_svc::chat(inti_data.client_id, param).await;
+            let res = service::chat_svc::chat(init_data.clone(), param).await;
+            if res.is_err() {
+                tracing::error!("获取聊天列表失败: {:?}", res.err());
+            }
+        },
+        AppCommand::Listen(param) => {
+            let res = service::listen_svc::listen(init_data.clone(), param).await;
             if res.is_err() {
                 tracing::error!("获取聊天列表失败: {:?}", res.err());
             }
         },
         AppCommand::Start => {
-            inti_data = service::init_svc::init(true).await;
-            let res = service::akile_svc::checkin(inti_data.client_id).await;
+            let res = service::akile_svc::checkin(init_data.clone()).await;
             if res.is_err() {
                 tracing::error!("Akile 自动签到失败: {:?}", res.err());
             }
         },
+        _ => (),
     }
-    service::init_svc::close(inti_data).await;
+    service::init_svc::close(init_data).await;
 }

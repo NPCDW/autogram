@@ -3,7 +3,10 @@ use tdlib::functions;
 
 use crate::config::args_conf::ChatArgs;
 
-pub async fn chat(client_id: i32, chat_param: ChatArgs) -> anyhow::Result<()> {
+use super::init_svc::InitData;
+
+pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<()> {
+    let client_id = init_data.client_id;
     // 需要先把聊天找到，才能向聊天发送消息
     let mut limit = 20;
     'find_chat: loop {
@@ -38,7 +41,17 @@ pub async fn chat(client_id: i32, chat_param: ChatArgs) -> anyhow::Result<()> {
     let tdlib::enums::Message::Message(message) = message.unwrap();
     tracing::info!("发送消息 id: {} content: {:?}", message.id, message.content);
     // 等待消息发送完成
-    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+    let timeout = tokio::time::timeout(tokio::time::Duration::from_secs(5), async {
+        while let Some(msg) = init_data.msg_rx.write().await.recv().await {
+            if msg.id == message.id {
+                tracing::info!("消息 {} 发送成功", message.id);
+                break;
+            }
+        }
+    }).await;
     functions::close_chat(chat_param.chat_id, client_id).await.unwrap();
+    if timeout.is_err() {
+        return Err(anyhow!("发送消息失败: {:?}", timeout.err()));
+    }
     anyhow::Ok(())
 }

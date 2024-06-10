@@ -9,6 +9,8 @@ pub enum AppCommand {
     #[command()]
     Chat(ChatArgs),
     #[command()]
+    Listen(ListenArgs),
+    #[command()]
     Start,
 }
 
@@ -24,6 +26,14 @@ pub struct ChatArgs {
     pub chat_id: i64,
     #[arg(short, long)]
     pub message: String,
+}
+
+#[derive(Parser)]
+pub struct ListenArgs {
+    #[arg(short, long)]
+    pub chat_id: i64,
+    #[arg(long)]
+    pub history: bool,
 }
 
 #[derive(Parser)]

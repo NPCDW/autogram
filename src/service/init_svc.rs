@@ -4,16 +4,19 @@ use std::sync::{
 };
 use tdlib::{
     enums::{AuthorizationState, Update},
-    functions,
+    functions, types::Message,
 };
 use tokio::sync::{mpsc::{self, Receiver, Sender}, RwLock};
 
 use super::auth_svc;
 
-async fn handle_update(update: Update, auth_tx: &Sender<AuthorizationState>) {
+async fn handle_update(update: Update, auth_tx: &Sender<AuthorizationState>, msg_tx: &Sender<Message>) {
     match update {
         Update::AuthorizationState(update) => {
             auth_tx.send(update.authorization_state).await.unwrap();
+        },
+        Update::NewMessage(update) => {
+            msg_tx.send(update.message).await.unwrap();
         },
         _ => (),
     }
@@ -23,6 +26,7 @@ async fn handle_update(update: Update, auth_tx: &Sender<AuthorizationState>) {
 pub struct InitData {
     pub client_id: i32,
     pub auth_rx: Arc<RwLock<Receiver<AuthorizationState>>>,
+    pub msg_rx: Arc<RwLock<Receiver<Message>>>,
     pub run_flag: Arc<RwLock<AtomicBool>>,
 }
 
@@ -33,6 +37,7 @@ pub async fn init(already_login: bool) -> InitData {
     // Create a mpsc channel for handling AuthorizationState updates separately
     // from the task
     let (auth_tx, auth_rx) = mpsc::channel(5);
+    let (msg_tx, msg_rx) = mpsc::channel(50);
 
     // Create a flag to make it possible to stop receiving updates
     let run_flag = Arc::new(RwLock::new(AtomicBool::new(true)));
@@ -42,7 +47,7 @@ pub async fn init(already_login: bool) -> InitData {
     tokio::spawn(async move {
         while run_flag_clone.read().await.load(Ordering::Acquire) {
             if let Some((update, _client_id)) = tdlib::receive() {
-                handle_update(update, &auth_tx).await;
+                handle_update(update, &auth_tx, &msg_tx).await;
             }
         }
     });
@@ -63,6 +68,7 @@ pub async fn init(already_login: bool) -> InitData {
     InitData {
         client_id,
         auth_rx,
+        msg_rx: Arc::new(RwLock::new(msg_rx)),
         run_flag,
     }
 }
