@@ -8,9 +8,9 @@ use super::init_svc::InitData;
 pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<()> {
     let client_id = init_data.client_id;
     // 需要先把聊天找到，才能向聊天发送消息
-    tracing::debug!("查找聊天");
     let mut limit = 20;
     'find_chat: loop {
+        tracing::debug!("查找聊天 limit: {}", limit);
         let chats = functions::get_chats(None, limit, client_id).await;
         if chats.is_err() {
             return Err(anyhow!("获取聊天列表失败: {:?}", chats.as_ref().err()));

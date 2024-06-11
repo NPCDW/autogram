@@ -3,6 +3,7 @@ use config::args_conf::AppCommand;
 
 mod config;
 mod service;
+mod util;
 
 #[tokio::main]
 async fn main() {

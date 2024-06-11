@@ -47,6 +47,9 @@ pub struct ListenArgs {
     /// 最大查询的历史消息条数，可能会略微超出
     #[arg(long, default_value_t = 100)]
     pub max_history: usize,
+    /// 回调地址
+    #[arg(long)]
+    pub webhook_url: String,
 }
 
 #[derive(Parser)]
