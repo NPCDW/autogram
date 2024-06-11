@@ -26,10 +26,10 @@ docker compose run --rm -it autogram start            # 默认命令，使用 do
 
 编译安装 `tdlib` 依赖
 ```bash
-sudo apt update && sudo apt upgrade
+sudo apt update -y
 sudo apt-get install -y gcc pkg-config cmake g++ gperf libssl-dev zlib1g-dev
 
-sudo cd /usr/src/
+cd /usr/src/
 sudo git clone https://github.com/tdlib/td.git
 cd td/
 git checkout 2589c3fd46925f5d57e4ec79233cd1bd0f5d0c09         # tdlib = "0.10.0" 对应此版本，如果之前编译过其他版本，需要删除本项目目录下的 db 数据缓存
