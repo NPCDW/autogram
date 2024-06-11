@@ -15,7 +15,6 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
         if chats.is_err() {
             return Err(anyhow!("获取聊天列表失败: {:?}", chats.as_ref().err()));
         }
-        let chats = chats.unwrap();
         let tdlib::enums::Chats::Chats(chats) = chats.unwrap();
         if chats.chat_ids.len() < limit as usize && limit > 20 {
             return Err(anyhow!("未找到ID为 {} 的聊天", listen_param.chat_id));
