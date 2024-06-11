@@ -8,6 +8,7 @@ use super::init_svc::InitData;
 pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<()> {
     let client_id = init_data.client_id;
     // 需要先把聊天找到，才能向聊天发送消息
+    tracing::debug!("查找聊天");
     let mut limit = 20;
     'find_chat: loop {
         let chats = functions::get_chats(None, limit, client_id).await;
@@ -25,7 +26,9 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
         }
         limit += 20;
     }
+    tracing::debug!("打开聊天");
     functions::open_chat(chat_param.chat_id, client_id).await.unwrap();
+    tracing::debug!("发送消息");
     let message = functions::send_message(chat_param.chat_id, 0, None, None, None,
         tdlib::enums::InputMessageContent::InputMessageText(tdlib::types::InputMessageText {
             text: tdlib::types::FormattedText {
@@ -45,10 +48,13 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
         while let Some(msg) = init_data.msg_rx.write().await.recv().await {
             if msg.id == message.id {
                 tracing::info!("消息 {} 发送成功", message.id);
+                // 如果不在此处睡眠1秒，消息有些时候会发送失败，原因不明
+                tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
                 break;
             }
         }
     }).await;
+    tracing::debug!("关闭聊天");
     functions::close_chat(chat_param.chat_id, client_id).await.unwrap();
     if timeout.is_err() {
         return Err(anyhow!("发送消息失败: {:?}", timeout.err()));

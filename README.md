@@ -17,7 +17,8 @@
 docker compose pull
 docker compose run --rm -it autogram login            # 登录你的账户，API_ID 相当于你申请的网站，login 相当于在你的网站上登录你的账户，需要输入手机号和验证码登录，使用其他命令前必须先登录
 docker compose run --rm -it autogram chats            # 查看前几个聊天组的ID和标题，用于配置自动化，默认前20，可以使用 --top 50 参数指定
-docker compose run --rm -it autogram chat             # 制定一个聊天ID和消息内容，发送消息，示例： docker compose run --rm -it autogram chat --chat-id='-1234567890123' -m '/checkin'
+docker compose run --rm -it autogram chat             # 指定一个聊天ID和消息内容，发送消息，示例： docker compose run --rm -it autogram chat --chat-id='-1234567890123' -m '/checkin'
+docker compose run --rm -it autogram chat             # 监听一个聊天，示例： docker compose run --rm -it autogram listen --chat-id='-1234567890123'
 docker compose run --rm -it autogram start            # 默认命令，使用 docker compose up 启动时会执行此命令
 ```
 
