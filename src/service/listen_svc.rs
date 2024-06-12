@@ -43,17 +43,7 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
             tracing::debug!("历史消息: {} {:?}", messages.total_count, messages.messages);
             for msg in &messages.messages {
                 if let Some(msg) = msg {
-                    let content = match &msg.content {
-                        tdlib::enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
-                        tdlib::enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
-                        tdlib::enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
-                        tdlib::enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
-                        tdlib::enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
-                        _ => continue,
-                    };
-                    let json = json!({"id": msg.id, "content": content}).to_string();
-                    tracing::debug!("webhook 消息 json: {}", &json);
-                    let res = http_util::post(&listen_param.webhook_url, json).await;
+                    let res = webhook(msg, &listen_param.webhook_url).await;
                     if res.is_err() {
                         return Err(anyhow!("webhook 消息失败 {:?}", res.err()));
                     }
@@ -71,12 +61,27 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
     while let Some(msg) = init_data.msg_rx.write().await.recv().await {
         if msg.chat_id == listen_param.chat_id {
             tracing::debug!("监听消息: {} {:?}", msg.id, msg.content);
-            let res = http_util::post(&listen_param.webhook_url, serde_json::to_string(&msg)?).await;
+            let res = webhook(&msg, &listen_param.webhook_url).await;
             if res.is_err() {
                 return Err(anyhow!("webhook 消息失败 {:?}", res.err()));
             }
         }
     }
     functions::close_chat(listen_param.chat_id, client_id).await.unwrap();
+    anyhow::Ok(())
+}
+
+async fn webhook(msg: &tdlib::types::Message, webhook_url: &String) -> anyhow::Result<()> {
+    let content = match &msg.content {
+        tdlib::enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
+        tdlib::enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
+        tdlib::enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
+        tdlib::enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
+        tdlib::enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
+        _ => return anyhow::Ok(()),
+    };
+    let json = json!({"id": msg.id, "content": content}).to_string();
+    tracing::debug!("webhook 消息 json: {}", &json);
+    http_util::post(webhook_url, json).await?;
     anyhow::Ok(())
 }
