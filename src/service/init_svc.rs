@@ -37,7 +37,7 @@ pub async fn init(already_login: bool) -> InitData {
     // Create a mpsc channel for handling AuthorizationState updates separately
     // from the task
     let (auth_tx, auth_rx) = mpsc::channel(5);
-    let (msg_tx, msg_rx) = mpsc::channel(50);
+    let (msg_tx, msg_rx) = mpsc::channel(500);
 
     // Create a flag to make it possible to stop receiving updates
     let run_flag = Arc::new(RwLock::new(AtomicBool::new(true)));

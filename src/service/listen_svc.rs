@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use serde_json::json;
 use tdlib::functions;
 
 use crate::{config::args_conf::ListenArgs, util::http_util};
@@ -47,7 +48,17 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
             tracing::debug!("历史消息: {} {:?}", messages.total_count, messages.messages);
             for msg in &messages.messages {
                 if let Some(msg) = msg {
-                    let res = http_util::post(&listen_param.webhook_url, serde_json::to_string(msg)?).await;
+                    let content = match &msg.content {
+                        tdlib::enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
+                        tdlib::enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
+                        tdlib::enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
+                        tdlib::enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
+                        tdlib::enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
+                        _ => continue,
+                    };
+                    let json = json!({"id": msg.id, "content": content}).to_string();
+                    tracing::debug!("webhook 消息 json: {}", &json);
+                    let res = http_util::post(&listen_param.webhook_url, json).await;
                     if res.is_err() {
                         return Err(anyhow!("webhook 消息失败 {:?}", res.err()));
                     }
