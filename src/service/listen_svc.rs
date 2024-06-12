@@ -12,12 +12,7 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
     let mut limit = 20;
     'find_chat: loop {
         tracing::debug!("查找聊天 limit: {}", limit);
-        let chats = tokio::time::timeout(tokio::time::Duration::from_secs(5), functions::get_chats(None, limit, client_id)).await;
-        if chats.is_err() {
-            tracing::error!("获取聊天列表超时: {:?}", chats.as_ref().err());
-            continue;
-        }
-        let chats = chats.unwrap();
+        let chats = functions::get_chats(None, limit, client_id).await;
         if chats.is_err() {
             return Err(anyhow!("获取聊天列表失败: {:?}", chats.as_ref().err()));
         }
