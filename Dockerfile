@@ -2,7 +2,7 @@ FROM debian@sha256:82f8da149d6d567c74564cccd6f355fb5ade42a958e4cde10a1100eaeb24d
 
 WORKDIR /usr/src/
 
-RUN apt-get update
+RUN apt-get update -y
 RUN apt-get install -y gcc pkg-config cmake g++ gperf libssl-dev zlib1g-dev git
 RUN git clone https://github.com/tdlib/td.git
 WORKDIR /usr/src/td/
@@ -11,7 +11,6 @@ RUN mkdir build
 WORKDIR /usr/src/td/build/
 RUN cmake -DCMAKE_BUILD_TYPE=Release ..
 RUN cmake --build .
-CMD exec /usr/local/bin/autogram
 
 
 
