@@ -2,7 +2,7 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
 };
-use tdlib::{
+use tdlib_rs::{
     enums::{AuthorizationState, Update},
     functions, types::Message,
 };
@@ -32,7 +32,7 @@ pub struct InitData {
 
 pub async fn init(already_login: bool) -> InitData {
     // Create the client object
-    let client_id = tdlib::create_client();
+    let client_id = tdlib_rs::create_client();
 
     // Create a mpsc channel for handling AuthorizationState updates separately
     // from the task
@@ -46,7 +46,7 @@ pub async fn init(already_login: bool) -> InitData {
     // Spawn a task to receive updates/responses
     tokio::spawn(async move {
         while run_flag_clone.read().await.load(Ordering::Acquire) {
-            if let Some((update, _client_id)) = tdlib::receive() {
+            if let Some((update, _client_id)) = tdlib_rs::receive() {
                 handle_update(update, &auth_tx, &msg_tx).await;
             }
         }

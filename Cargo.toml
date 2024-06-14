@@ -1,6 +1,6 @@
 [package]
 name = "autogram"
-version = "0.7.7"
+version = "0.8.0"
 edition = "2021"
 
 [dependencies]
@@ -15,9 +15,9 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "time", "local
 
 time = "0.3.36"
 
-tdlib-tl-gen = "0.5.0"
-tdlib-tl-parser = "0.2.0"
-tdlib = "0.10.0"
+tdlib-rs-gen = "1.0.3"
+tdlib-rs-parser = "1.0.3"
+tdlib-rs = { version = "1.0.3", features = [ "download-tdlib" ] }
 
 clap = { version = "4.5.4", features = ["derive"] }
 

@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use tdlib::functions;
+use tdlib_rs::{functions, enums, types};
 
 use crate::config::args_conf::ChatArgs;
 
@@ -15,7 +15,7 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
         if chats.is_err() {
             return Err(anyhow!("获取聊天列表失败: {:?}", chats.as_ref().err()));
         }
-        let tdlib::enums::Chats::Chats(chats) = chats.unwrap();
+        let enums::Chats::Chats(chats) = chats.unwrap();
         if chats.chat_ids.len() < limit as usize && limit > 20 {
             return Err(anyhow!("未找到ID为 {} 的聊天", chat_param.chat_id));
         }
@@ -29,19 +29,19 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
     tracing::debug!("打开聊天");
     functions::open_chat(chat_param.chat_id, client_id).await.unwrap();
     tracing::debug!("发送消息");
-    let message = functions::send_message(chat_param.chat_id, 0, None, None, None,
-        tdlib::enums::InputMessageContent::InputMessageText(tdlib::types::InputMessageText {
-            text: tdlib::types::FormattedText {
+    let message = functions::send_message(chat_param.chat_id, 0, None, None, 
+        enums::InputMessageContent::InputMessageText(types::InputMessageText {
+            text: types::FormattedText {
                 text: chat_param.message,
                 entities: vec![]
             },
-            disable_web_page_preview: true,
+            link_preview_options: None,
             clear_draft: true
         }), client_id).await;
     if message.is_err() {
         return Err(anyhow!("发送消息失败: {:?}", message.as_ref().err()));
     }
-    let tdlib::enums::Message::Message(message) = message.unwrap();
+    let enums::Message::Message(message) = message.unwrap();
     tracing::info!("发送消息 id: {} content: {:?}", message.id, message.content);
     // 等待消息发送完成
     let timeout = tokio::time::timeout(tokio::time::Duration::from_secs(5), async {

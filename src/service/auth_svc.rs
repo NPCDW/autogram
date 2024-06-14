@@ -2,7 +2,7 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
 };
-use tdlib::{
+use tdlib_rs::{
     enums::{AuthorizationState, User},
     functions,
 };
@@ -31,8 +31,6 @@ async fn set_tdlib_param(client_id: i32) {
         "Desktop".into(),
         String::new(),
         env!("CARGO_PKG_VERSION").into(),
-        false,
-        true,
         client_id,
     )
     .await;

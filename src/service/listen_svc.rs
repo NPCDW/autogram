@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use serde_json::json;
-use tdlib::functions;
+use tdlib_rs::{functions, enums, types};
 
 use crate::{config::args_conf::ListenArgs, util::http_util};
 
@@ -16,22 +16,22 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
         if chats.is_err() {
             return Err(anyhow!("获取聊天列表失败: {:?}", chats.as_ref().err()));
         }
-        let tdlib::enums::Chats::Chats(chats) = chats.unwrap();
-        if chats.chat_ids.len() < limit as usize && limit > 20 {
-            return Err(anyhow!("未找到ID为 {} 的聊天", listen_param.chat_id));
-        }
-        for chat_id in chats.chat_ids {
-            if chat_id == listen_param.chat_id {
+        let enums::Chats::Chats(chats) = chats.unwrap();
+        for chat_id in &chats.chat_ids {
+            if chat_id == &listen_param.chat_id {
                 break 'find_chat;
             }
+        }
+        if chats.chat_ids.len() < limit as usize && limit > 20 {
+            return Err(anyhow!("未找到ID为 {} 的聊天", listen_param.chat_id));
         }
         limit += 20;
     }
     tracing::debug!("打开聊天");
     functions::open_chat(listen_param.chat_id, client_id).await.unwrap();
-    tracing::debug!("查询历史消息");
     if listen_param.history {
-        let mut from_message_id = 0;
+        tracing::debug!("查询历史消息");
+        let mut from_message_id = 195035136;
         let limit = 10;
         let mut total = 0;
         loop {
@@ -39,8 +39,9 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
             if history.is_err() {
                 return Err(anyhow!("获取历史消息失败 {:?}", history.err()));
             }
-            let tdlib::enums::Messages::Messages(messages) = history.unwrap();
+            let enums::Messages::Messages(messages) = history.unwrap();
             tracing::debug!("历史消息: {} {:?}", messages.total_count, messages.messages);
+            tracing::info!("{}", serde_json::to_string(&messages)?);
             for msg in &messages.messages {
                 if let Some(msg) = msg {
                     let res = webhook(msg, &listen_param.webhook_url).await;
@@ -71,13 +72,13 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
     anyhow::Ok(())
 }
 
-async fn webhook(msg: &tdlib::types::Message, webhook_url: &String) -> anyhow::Result<()> {
+async fn webhook(msg: &types::Message, webhook_url: &String) -> anyhow::Result<()> {
     let content = match &msg.content {
-        tdlib::enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
-        tdlib::enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
-        tdlib::enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
-        tdlib::enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
-        tdlib::enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
+        enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
+        enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
+        enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
+        enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
+        enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
         _ => return anyhow::Ok(()),
     };
     let json = json!({"id": msg.id, "content": content}).to_string();

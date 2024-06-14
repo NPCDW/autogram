@@ -4,11 +4,7 @@
 
 # Learn more from ready-to-use templates: https://www.gitpod.io/docs/introduction/getting-started/quickstart
 
-image:
-    file: .gitpod.Dockerfile
-
 tasks:
-  - init: git pull
-    command: cargo watch -x run
+  - command: sudo apt -y install libc++1
 
 
