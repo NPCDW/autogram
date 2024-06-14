@@ -39,3 +39,7 @@ export AKILE_CHAT_ID=-1234567890123         # 选填
 ```bash
 cargo run
 ```
+
+# 感谢
+
+[tdlib-rs](https://github.com/FedericoBruzzone/tdlib-rs): Rust wrapper around the Telegram Database Library 🦀
