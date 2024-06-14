@@ -31,7 +31,7 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
     functions::open_chat(listen_param.chat_id, client_id).await.unwrap();
     if listen_param.history {
         tracing::debug!("查询历史消息");
-        let mut from_message_id = 195035136;
+        let mut from_message_id = 0;
         let limit = 10;
         let mut total = 0;
         loop {
