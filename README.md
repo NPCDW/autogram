@@ -1,7 +1,6 @@
 # Autogram
 
-> 特别提醒
-> 能用机器人做到的事就不要用此程序，此程序相当于真人操作
+> 特别提醒：尽量使用机器人操作自动化，此程序相当于真人操作
 
 # 功能
 
@@ -24,21 +23,10 @@ docker compose run --rm -it autogram start            # 默认命令，使用 do
 
 # 开发
 
-编译安装 `tdlib` 依赖
+你可以使用 `gitpod` 打开就能使用，或使用 `github workspace` 执行下面的命令，并安装 `rust` 程序
 ```bash
 sudo apt update -y
-sudo apt-get install -y gcc pkg-config cmake g++ gperf libssl-dev zlib1g-dev
-
-cd /usr/src/
-sudo git clone https://github.com/tdlib/td.git
-cd td/
-git checkout 2589c3fd46925f5d57e4ec79233cd1bd0f5d0c09         # tdlib = "0.10.0" 对应此版本，如果之前编译过其他版本，需要删除本项目目录下的 db 数据缓存
-sudo mkdir build && cd build
-sudo cmake -DCMAKE_BUILD_TYPE=Release ..
-sudo cmake --build .
-sudo cp pkgconfig/* /usr/lib/pkgconfig/
-sudo cp libtdjson.so* /usr/local/lib/
-sudo ldconfig
+sudo apt-get install -y libc++1
 ```
 
 添加环境变量，编辑 `~/.bashrc` 文件
@@ -48,3 +36,6 @@ export API_HASH=1234567890abcdef1234567890abcdef
 export AKILE_CHAT_ID=-1234567890123         # 选填
 ```
 把终端关闭，重新打开即可使其生效
+```bash
+cargo run
+```
