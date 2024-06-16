@@ -23,11 +23,9 @@ docker compose run --rm -it autogram start            # 默认命令，使用 do
 
 # 开发
 
-你可以使用 `gitpod` 打开就能使用，或使用 `github workspace` 执行下面的命令，并安装 `rust` 程序
-```bash
-sudo apt update -y
-sudo apt-get install -y libc++1
-```
+下面两个开发容器，环境依赖均已配置完成，启动即可使用
+- github workspace
+- gitpod
 
 添加环境变量，编辑 `~/.bashrc` 文件
 ```
@@ -42,4 +40,5 @@ cargo run
 
 # 感谢
 
-[tdlib-rs](https://github.com/FedericoBruzzone/tdlib-rs): Rust wrapper around the Telegram Database Library 🦀
+- [tdlib-rs](https://github.com/FedericoBruzzone/tdlib-rs): Rust wrapper around the Telegram Database Library 🦀
+- [td](https://github.com/tdlib/td): Cross-platform library for building Telegram clients
