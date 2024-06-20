@@ -3,20 +3,37 @@ use std::sync::{
     Arc,
 };
 use tdlib_rs::{
-    enums::{AuthorizationState, Update},
-    functions, types::Message,
+    enums::{AuthorizationState, MessageContent, Update},
+    functions
 };
 use tokio::sync::{mpsc::{self, Receiver, Sender}, RwLock};
 
 use super::auth_svc;
 
-async fn handle_update(update: Update, auth_tx: &Sender<AuthorizationState>, msg_tx: &Sender<Message>) {
+pub struct SimpleMessage {
+    pub id: i64,
+    pub chat_id: i64,
+    pub content: MessageContent,
+}
+
+async fn handle_update(update: Update, auth_tx: &Sender<AuthorizationState>, msg_tx: &Sender<SimpleMessage>) {
     match update {
         Update::AuthorizationState(update) => {
             auth_tx.send(update.authorization_state).await.unwrap();
         },
         Update::NewMessage(update) => {
-            msg_tx.send(update.message).await.unwrap();
+            msg_tx.send(SimpleMessage {
+                id: update.message.id,
+                chat_id: update.message.chat_id,
+                content: update.message.content,
+            }).await.unwrap();
+        },
+        Update::MessageContent(update) => {
+            msg_tx.send(SimpleMessage {
+                id: update.message_id,
+                chat_id: update.chat_id,
+                content: update.new_content,
+            }).await.unwrap();
         },
         _ => (),
     }
@@ -26,7 +43,7 @@ async fn handle_update(update: Update, auth_tx: &Sender<AuthorizationState>, msg
 pub struct InitData {
     pub client_id: i32,
     pub auth_rx: Arc<RwLock<Receiver<AuthorizationState>>>,
-    pub msg_rx: Arc<RwLock<Receiver<Message>>>,
+    pub msg_rx: Arc<RwLock<Receiver<SimpleMessage>>>,
     pub run_flag: Arc<RwLock<AtomicBool>>,
 }
 

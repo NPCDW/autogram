@@ -1,10 +1,10 @@
 use anyhow::anyhow;
 use serde_json::json;
-use tdlib_rs::{functions, enums, types};
+use tdlib_rs::{functions, enums};
 
 use crate::{config::args_conf::ListenArgs, util::http_util};
 
-use super::init_svc::InitData;
+use super::init_svc::{InitData, SimpleMessage};
 
 pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Result<()> {
     let client_id = init_data.client_id;
@@ -44,7 +44,11 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
             tracing::info!("{}", serde_json::to_string(&messages)?);
             for msg in &messages.messages {
                 if let Some(msg) = msg {
-                    let res = webhook(msg, &listen_param.webhook_url).await;
+                    let res = webhook(&SimpleMessage {
+                        id: msg.id,
+                        chat_id: msg.chat_id,
+                        content: msg.content.clone(),
+                    }, &listen_param.webhook_url).await;
                     if res.is_err() {
                         return Err(anyhow!("webhook 消息失败 {:?}", res.err()));
                     }
@@ -72,7 +76,7 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
     anyhow::Ok(())
 }
 
-async fn webhook(msg: &types::Message, webhook_url: &String) -> anyhow::Result<()> {
+async fn webhook(msg: &SimpleMessage, webhook_url: &String) -> anyhow::Result<()> {
     let content = match &msg.content {
         enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
         enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
