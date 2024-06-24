@@ -43,12 +43,6 @@ async fn main() {
                 tracing::error!("获取聊天列表失败: {:?}", res.err());
             }
         },
-        AppCommand::Start => {
-            let res = service::akile_svc::checkin(init_data.clone()).await;
-            if res.is_err() {
-                tracing::error!("Akile 自动签到失败: {:?}", res.err());
-            }
-        },
         _ => (),
     }
     service::init_svc::close(init_data).await;

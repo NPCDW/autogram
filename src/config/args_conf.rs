@@ -14,9 +14,6 @@ pub enum AppCommand {
     /// 监听一个聊天
     #[command()]
     Listen(ListenArgs),
-    /// 默认命令，当前支持 akile 签到
-    #[command()]
-    Start,
 }
 
 #[derive(Parser)]

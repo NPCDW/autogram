@@ -1,44 +1,46 @@
 # Autogram
 
-> 特别提醒：尽量使用机器人操作自动化，此程序相当于真人操作
+[![rust](https://img.shields.io/badge/rust-1.78.0-f17d3e.svg)](https://www.rust-lang.org)
+[![tdlib](https://img.shields.io/badge/tdlib-1.8.29-blue.svg)](https://github.com/tdlib/td)
+[![tdlib-rs](https://img.shields.io/badge/tdlib_rs-1.0.3-fedcba.svg)](https://github.com/FedericoBruzzone/tdlib-rs)
 
-# 功能
+[中文](./README-cn.md) | English
 
-当前支持
-- akile 自动签到
+> Important:
+>
+> It is highly recommended to utilize robot automation for operations, as this application is equivalent to manual operations performed by a real person.
 
-# 使用
+# Features
 
-使用任何功能都需要先去 [telegram api](https://my.telegram.org/apps) 网站申请一个客户端，需要用家宽申请，使用代理会报错 ERROR。
+To use any function, you must first apply for a client at the [Telegram API](https://my.telegram.org/apps) website. It is necessary to use your home broadband for the application; using a proxy will result in an ERROR.
 
-任意位置新建 `autogram` 文件夹，将 [docker-compose.yml](./docker-compose.yml) 文件复制到此文件夹，并修改环境变量字段，必须配置 `API_ID` 和 `API_HASH` ，其他环境变量可以在登录后选择配置，执行命令
+Create a new folder named `autogram` anywhere, and then copy the [docker-compose.yml](./docker-compose.yml) file into this folder. Modify the environment variable fields, ensuring that `API_ID` and `API_HASH` are configured — these are mandatory. Other environment variables can be optionally configured after logging in. To proceed, execute the command.
 ```bash
 docker compose pull
-docker compose run --rm -it autogram login            # 登录你的账户，API_ID 相当于你申请的网站，login 相当于在你的网站上登录你的账户，需要输入手机号和验证码登录，使用其他命令前必须先登录
-docker compose run --rm -it autogram chats            # 查看前几个聊天组的ID和标题，用于配置自动化，默认前20，可以使用 --top 50 参数指定
-docker compose run --rm -it autogram chat             # 指定一个聊天ID和消息内容，发送消息，示例： docker compose run --rm -it autogram chat --chat-id='-1234567890123' -m '/checkin'
-docker compose run --rm -it autogram chat             # 监听一个聊天，示例： docker compose run --rm -it autogram listen --chat-id='-1234567890123'
-docker compose run --rm -it autogram start            # 默认命令，使用 docker compose up 启动时会执行此命令
+docker compose run --rm -it autogram login            # Log in to your account, where `API_ID` corresponds to the website you've applied for, and `login` is akin to signing into your account on that website. You will need to input your phone number and verify it with a code to log in. Prior to using any other commands, you must first log in.
+docker compose run --rm -it autogram chats            # View the IDs and titles of the first few chat groups, which are used for configuring automation. By default, the top 20 are shown, but you can specify using the `--top 50` parameter.
+docker compose run --rm -it autogram chat             # Specify a chat ID and message content to send a message. Example: docker compose run --rm -it autogram chat --chat-id='-1234567890123' -m '/checkin'
+docker compose run --rm -it autogram listen           # Monitor a chat and send a webhook. Example: docker compose run --rm -it autogram listen --chat-id='-1234567890123'
+docker compose run --rm -it autogram help             # Default command, executed when starting with `docker compose up`, provides detailed information about the commands available.
 ```
 
-# 开发
+# Development
 
-下面两个开发容器，环境依赖均已配置完成，启动即可使用
+Below are two development containers, with all environmental dependencies pre-configured, ready to use upon launch.
 - github workspace
 - gitpod
 
-添加环境变量，编辑 `~/.bashrc` 文件
+Add environment variables by editing the `~/.bashrc` file.
 ```
 export API_ID=12345678
 export API_HASH=1234567890abcdef1234567890abcdef
-export AKILE_CHAT_ID=-1234567890123         # 选填
 ```
-把终端关闭，重新打开即可使其生效
+Close the terminal and reopen it for the changes to take effect.
 ```bash
 cargo run
 ```
 
-# 感谢
+# Thank
 
 - [tdlib-rs](https://github.com/FedericoBruzzone/tdlib-rs): Rust wrapper around the Telegram Database Library 🦀
 - [td](https://github.com/tdlib/td): Cross-platform library for building Telegram clients
