@@ -43,6 +43,18 @@ async fn main() {
                 tracing::error!("获取聊天列表失败: {:?}", res.err());
             }
         },
+        AppCommand::MultiListen(param) => {
+            let res = service::multi_listen_svc::listen(init_data.clone(), param).await;
+            if res.is_err() {
+                tracing::error!("获取聊天列表失败: {:?}", res.err());
+            }
+        },
+        AppCommand::Follow(param) => {
+            let res = service::follow_svc::follow(init_data.clone(), param).await;
+            if res.is_err() {
+                tracing::error!("获取聊天列表失败: {:?}", res.err());
+            }
+        },
         _ => (),
     }
     service::init_svc::close(init_data).await;

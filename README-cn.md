@@ -21,6 +21,8 @@ docker compose run --rm -it autogram login            # 登录你的账户，API
 docker compose run --rm -it autogram chats            # 查看前几个聊天组的ID和标题，用于配置自动化，默认前20，可以使用 --top 50 参数指定
 docker compose run --rm -it autogram chat             # 指定一个聊天ID和消息内容，发送消息，示例： docker compose run --rm -it autogram chat --chat-id='-1234567890123' -m '/checkin'
 docker compose run --rm -it autogram listen           # 监听一个聊天，示例： docker compose run --rm -it autogram listen --chat-id='-1234567890123'
+docker compose run --rm -it autogram multi-listen     # 监听多个聊天，示例： docker compose run --rm -it autogram multi-listen --chat-id='-1234567890123' --chat-id='-9876543210123'
+docker compose run --rm -it autogram follow           # 监听一个聊天，示例： docker compose run --rm -it autogram follow --forward-chat-id='-1234567890123' --user-id=12345678
 docker compose run --rm -it autogram help             # 默认命令，使用 docker compose up 启动时会执行此命令，展示命令详情信息
 ```
 

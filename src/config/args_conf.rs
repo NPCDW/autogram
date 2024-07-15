@@ -14,6 +14,12 @@ pub enum AppCommand {
     /// 监听一个聊天
     #[command()]
     Listen(ListenArgs),
+    /// 监听多个聊天
+    #[command()]
+    MultiListen(MultiListenArgs),
+    /// 关注一个用户
+    #[command()]
+    Follow(FollowArgs),
 }
 
 #[derive(Parser)]
@@ -47,6 +53,29 @@ pub struct ListenArgs {
     /// 回调地址
     #[arg(long)]
     pub webhook_url: String,
+}
+
+#[derive(Parser)]
+pub struct MultiListenArgs {
+    /// 聊天ID，请使用 --chat-id='-123456789' 勿使用 --chat-id '-123456789'
+    #[arg(short, long)]
+    pub chat_id: Vec<i64>,
+    /// 回调地址
+    #[arg(long)]
+    pub webhook_url: String,
+}
+
+#[derive(Parser)]
+pub struct FollowArgs {
+    /// 用户ID，请使用 --user-id='-123456789' 勿使用 --user-id '-123456789'
+    #[arg(short, long)]
+    pub user_id: Vec<i64>,
+    /// 转发到的聊天ID，请使用 --forward-chat-id='-123456789' 勿使用 --forward-chat-id '-123456789'
+    #[arg(short, long)]
+    pub forward_chat_id: Option<i64>,
+    /// 回调地址
+    #[arg(long)]
+    pub webhook_url: Option<String>,
 }
 
 #[derive(Parser)]

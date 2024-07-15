@@ -2,13 +2,14 @@ use anyhow::anyhow;
 use serde_json::json;
 use tdlib_rs::{functions, enums};
 
-use crate::{config::args_conf::ListenArgs, util::http_util};
+use crate::{config::args_conf::MultiListenArgs, util::http_util};
 
 use super::init_svc::{InitData, SimpleMessage};
 
-pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Result<()> {
+pub async fn listen(init_data: InitData, listen_param: MultiListenArgs) -> anyhow::Result<()> {
     let client_id = init_data.client_id;
-    // 需要先把聊天找到，才能监听聊天消息
+    // 需要先把聊天找到，才能监听聊天
+    let mut not_find = listen_param.chat_id.clone();
     let mut limit = 20;
     'find_chat: loop {
         tracing::debug!("查找聊天 limit: {}", limit);
@@ -18,49 +19,19 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
         }
         let enums::Chats::Chats(chats) = chats.unwrap();
         for chat_id in &chats.chat_ids {
-            if chat_id == &listen_param.chat_id {
-                break 'find_chat;
+            if let Ok(index) = not_find.binary_search(chat_id) {
+                tracing::debug!("打开聊天 {}", chat_id);
+                functions::open_chat(chat_id.clone(), client_id).await.unwrap();
+                not_find.remove(index);
+                if not_find.len() == 0 {
+                    break 'find_chat;
+                }
             }
         }
         if chats.chat_ids.len() < limit as usize && limit > 20 {
-            return Err(anyhow!("未找到ID为 {} 的聊天", listen_param.chat_id));
+            return Err(anyhow!("未找到ID为 {:?} 的聊天", not_find));
         }
         limit += 20;
-    }
-    tracing::debug!("打开聊天");
-    functions::open_chat(listen_param.chat_id, client_id).await.unwrap();
-    if listen_param.history {
-        tracing::debug!("查询历史消息");
-        let mut from_message_id = 0;
-        let limit = 10;
-        let mut total = 0;
-        loop {
-            let history = functions::get_chat_history(listen_param.chat_id, from_message_id, 0, limit, false, client_id).await;
-            if history.is_err() {
-                return Err(anyhow!("获取历史消息失败 {:?}", history.err()));
-            }
-            let enums::Messages::Messages(messages) = history.unwrap();
-            tracing::debug!("历史消息: {} {:?}", messages.total_count, messages.messages);
-            tracing::info!("{}", serde_json::to_string(&messages)?);
-            for msg in &messages.messages {
-                if let Some(msg) = msg {
-                    let res = webhook(&SimpleMessage {
-                        id: msg.id,
-                        chat_id: msg.chat_id,
-                        content: msg.content.clone(),
-                    }, &listen_param.webhook_url).await;
-                    if res.is_err() {
-                        return Err(anyhow!("webhook 消息失败 {:?}", res.err()));
-                    }
-                }
-            }
-            total += messages.total_count;
-            if messages.total_count <= 0 || total >= listen_param.max_history as i32 {
-                tracing::debug!("历史消息获取完成");
-                break;
-            }
-            from_message_id = messages.messages[(messages.total_count - 1) as usize].as_ref().unwrap().id;
-        }
     }
     tracing::debug!("监听消息");
     while let Some((new_msg, new_content)) = init_data.msg_rx.write().await.recv().await {
@@ -79,7 +50,7 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
                 content: msg.new_content,
             }
         };
-        if msg.chat_id == listen_param.chat_id {
+        if listen_param.chat_id.contains(&msg.chat_id) {
             tracing::debug!("监听消息: {} {:?}", msg.id, msg.content);
             let res = webhook(&msg, &listen_param.webhook_url).await;
             if res.is_err() {
@@ -87,7 +58,9 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
             }
         }
     }
-    functions::close_chat(listen_param.chat_id, client_id).await.unwrap();
+    for chat_id in listen_param.chat_id {
+        functions::close_chat(chat_id, client_id).await.unwrap();
+    }
     anyhow::Ok(())
 }
 
@@ -105,3 +78,19 @@ async fn webhook(msg: &SimpleMessage, webhook_url: &String) -> anyhow::Result<()
     http_util::post(webhook_url, json).await?;
     anyhow::Ok(())
 }
+
+// 文件下载
+// let file_id = "AgACAgEAAxkBAAIDX2aUkPfcOr-5W9A-l0ub3QbOU7ZXAALdrTEbiLyRRNbA4ldm07A5AQADAgADbQADNQQ".to_string();
+// let file = functions::get_remote_file(file_id, None, client_id).await;
+// if file.is_err() {
+//     tracing::error!("{:?}", file);
+// } else {
+//     let enums::File::File(file) = file.unwrap();
+//     let file = functions::download_file(file.id, 1, 0, 0, true, client_id).await;
+//     if file.is_err() {
+//         tracing::error!("{:?}", file);
+//     } else {
+//         let enums::File::File(file) = file.unwrap();
+//         tracing::info!("{:?}", file.local.path);
+//     }
+// }

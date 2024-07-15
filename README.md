@@ -21,6 +21,8 @@ docker compose run --rm -it autogram login            # Log in to your account, 
 docker compose run --rm -it autogram chats            # View the IDs and titles of the first few chat groups, which are used for configuring automation. By default, the top 20 are shown, but you can specify using the `--top 50` parameter.
 docker compose run --rm -it autogram chat             # Specify a chat ID and message content to send a message. Example: docker compose run --rm -it autogram chat --chat-id='-1234567890123' -m '/checkin'
 docker compose run --rm -it autogram listen           # Monitor a chat and send a webhook. Example: docker compose run --rm -it autogram listen --chat-id='-1234567890123'
+docker compose run --rm -it autogram multi-listen     # Listening to multiple chats, example: docker compose run --rm -it autogram multi-listen --chat-id='-1234567890123' --chat-id='-9876543210123'
+docker compose run --rm -it autogram follow           # Special attention is paid to certain users, for example: docker compose run --rm -it autogram follow --forward-chat-id='-1234567890123' --user-id=12345678
 docker compose run --rm -it autogram help             # Default command, executed when starting with `docker compose up`, provides detailed information about the commands available.
 ```
 

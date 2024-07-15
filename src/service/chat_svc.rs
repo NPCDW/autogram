@@ -45,12 +45,14 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
     tracing::info!("发送消息 id: {} content: {:?}", message.id, message.content);
     // 等待消息发送完成
     let timeout = tokio::time::timeout(tokio::time::Duration::from_secs(5), async {
-        while let Some(msg) = init_data.msg_rx.write().await.recv().await {
-            if msg.id == message.id {
-                tracing::info!("消息 {} 发送成功", message.id);
-                // 如果不在此处睡眠1秒，消息有些时候会发送失败，原因不明
-                tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-                break;
+        while let Some((new_msg, _)) = init_data.msg_rx.write().await.recv().await {
+            if let Some(msg) = new_msg {
+                if msg.message.id == message.id {
+                    tracing::info!("消息 {} 发送成功", message.id);
+                    // 如果不在此处睡眠1秒，消息有些时候会发送失败，原因不明
+                    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+                    break;
+                }
             }
         }
     }).await;
