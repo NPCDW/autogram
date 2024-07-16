@@ -34,25 +34,25 @@ async fn main() {
         AppCommand::Chat(param) => {
             let res = service::chat_svc::chat(init_data.clone(), param).await;
             if res.is_err() {
-                tracing::error!("获取聊天列表失败: {:?}", res.err());
+                tracing::error!("发送聊天消息失败: {:?}", res.err());
             }
         },
         AppCommand::Listen(param) => {
             let res = service::listen_svc::listen(init_data.clone(), param).await;
             if res.is_err() {
-                tracing::error!("获取聊天列表失败: {:?}", res.err());
+                tracing::error!("监听聊天失败: {:?}", res.err());
             }
         },
         AppCommand::MultiListen(param) => {
             let res = service::multi_listen_svc::listen(init_data.clone(), param).await;
             if res.is_err() {
-                tracing::error!("获取聊天列表失败: {:?}", res.err());
+                tracing::error!("监听多个聊天失败: {:?}", res.err());
             }
         },
         AppCommand::Follow(param) => {
             let res = service::follow_svc::follow(init_data.clone(), param).await;
             if res.is_err() {
-                tracing::error!("获取聊天列表失败: {:?}", res.err());
+                tracing::error!("关注用户动向失败: {:?}", res.err());
             }
         },
         _ => (),

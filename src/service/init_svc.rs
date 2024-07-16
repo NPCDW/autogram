@@ -42,6 +42,7 @@ pub struct InitData {
     pub auth_rx: Arc<RwLock<Receiver<AuthorizationState>>>,
     pub msg_rx: Arc<RwLock<Receiver<(Option<UpdateNewMessage>, Option<UpdateMessageContent>)>>>,
     pub run_flag: Arc<RwLock<AtomicBool>>,
+    pub bot_token: Option<String>,
 }
 
 pub async fn init(already_login: bool) -> InitData {
@@ -79,11 +80,17 @@ pub async fn init(already_login: bool) -> InitData {
         auth_svc::handle_authorization_state(client_id, auth_rx.clone(), run_flag.clone()).await;
     }
 
+    let bot_token = std::env::var("BOT_TOKEN");
+    if bot_token.is_err() {
+        tracing::debug!("未配置 BOT_TOKEN 环境变量");
+    }
+
     InitData {
         client_id,
         auth_rx,
         msg_rx: Arc::new(RwLock::new(msg_rx)),
         run_flag,
+        bot_token: bot_token.ok(),
     }
 }
 
