@@ -8,8 +8,8 @@
       "extensions": [
         "rust-lang.rust-analyzer",
         "tamasfe.even-better-toml",
-        "serayuzgur.crates",
-        "vadimcn.vscode-lldb"
+        "vadimcn.vscode-lldb",
+        "fill-labs.dependi"
       ]
     }
   }

@@ -15,7 +15,18 @@ pub async fn top(client_id: i32, limit: i32) -> anyhow::Result<()> {
             continue;
         }
         let enums::Chat::Chat(chat) = chat.unwrap();
-        tracing::info!("id: {} title: {}", chat.id, chat.title);
+        tracing::info!("chat_id: {} title: {}", chat.id, chat.title);
+        if chat.view_as_topics {
+            let topics = functions::get_forum_topics(chat.id, "".to_string(), 0, 0, 0, 100, client_id).await;
+            if topics.is_err() {
+                tracing::error!("  └─ 获取该聊天下的主题失败：{:?}", topics.err());
+            } else {
+                let enums::ForumTopics::ForumTopics(topics) = topics.unwrap();
+                for topic in topics.topics {
+                    tracing::info!("  └─ topic_id: {} title: {}", topic.info.message_thread_id, topic.info.name);
+                }
+            }
+        }
     }
     anyhow::Ok(())
 }

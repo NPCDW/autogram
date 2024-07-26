@@ -44,12 +44,12 @@ pub async fn follow(init_data: InitData, follow_param: FollowArgs) -> anyhow::Re
                 enums::MessageSender::Chat(chat) => chat.chat_id,
             };
             if follow_param.user_id.contains(&sender_id) {
-                tracing::info!("监听消息: {} {:?}", msg.id, msg.content);
+                tracing::debug!("监听消息: {} {:?}", msg.id, msg.content);
                 if follow_param.webhook_url.is_some() {
                     let msg = SimpleMessage {
                         id: msg.id,
                         chat_id: msg.chat_id,
-                        content: msg.content,
+                        content: msg.content.clone(),
                     };
                     let res = webhook(&msg, &follow_param.webhook_url.clone().unwrap()).await;
                     if res.is_err() {
@@ -58,23 +58,31 @@ pub async fn follow(init_data: InitData, follow_param: FollowArgs) -> anyhow::Re
                 }
                 if follow_param.forward_chat_id.is_some() {
                     let forward_chat_id = follow_param.forward_chat_id.unwrap();
-                    if msg.can_be_forwarded {
-                        let message = functions::forward_messages(forward_chat_id, 0, msg.chat_id, vec![msg.id], None, false, false, client_id).await;
-                        if message.is_err() {
-                            return Err(anyhow!("发送消息失败: {:?}", message.as_ref().err()));
-                        }
-                    }
+                    // if msg.can_be_forwarded {
+                    //     let message = functions::forward_messages(forward_chat_id, 0, msg.chat_id, vec![msg.id], None, false, false, client_id).await;
+                    //     if message.is_err() {
+                    //         return Err(anyhow!("发送消息失败: {:?}", message.as_ref().err()));
+                    //     }
+                    // }
 
                     if init_data.bot_token.is_none() {
                         tracing::warn!("未配置 BOT_TOKEN 环境变量，无法发送提醒消息");
                         continue;
                     }
+                    let content = match &msg.content {
+                        enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
+                        enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
+                        enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
+                        enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
+                        enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
+                        _ => "暂不支持的消息类型".to_string(),
+                    };
                     let link = match functions::get_message_link(msg.chat_id, msg.id, 0, false, false, client_id).await {
                         Ok(enums::MessageLink::MessageLink(link)) => link.link,
                         Err(_) => "nolink".to_string(),
                     };
                     let url = format!("https://api.telegram.org/bot{}/sendMessage", init_data.bot_token.as_ref().unwrap());
-                    let body = json!({"chat_id": forward_chat_id, "text": link}).to_string();
+                    let body = json!({"chat_id": forward_chat_id, "text": format!("{}\n{}", content, link)}).to_string();
                     tracing::debug!("forward 消息 body: {}", &body);
                     http_util::post(&url, body).await?;
                 }
