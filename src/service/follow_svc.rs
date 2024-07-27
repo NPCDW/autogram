@@ -81,8 +81,9 @@ pub async fn follow(init_data: InitData, follow_param: FollowArgs) -> anyhow::Re
                         Ok(enums::MessageLink::MessageLink(link)) => link.link,
                         Err(_) => "nolink".to_string(),
                     };
+                    let topic_id = if follow_param.forward_topic_id.is_none() { 0 } else { follow_param.forward_topic_id.unwrap() };
                     let url = format!("https://api.telegram.org/bot{}/sendMessage", init_data.bot_token.as_ref().unwrap());
-                    let body = json!({"chat_id": forward_chat_id, "text": format!("{}\n{}", content, link)}).to_string();
+                    let body = json!({"chat_id": forward_chat_id, "text": format!("{}\n{}", content, link), "message_thread_id": topic_id}).to_string();
                     tracing::debug!("forward 消息 body: {}", &body);
                     http_util::post(&url, body).await?;
                 }

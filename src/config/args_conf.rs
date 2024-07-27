@@ -71,8 +71,11 @@ pub struct FollowArgs {
     #[arg(short, long)]
     pub user_id: Vec<i64>,
     /// 转发到的聊天ID，请使用 --forward-chat-id='-123456789' 勿使用 --forward-chat-id '-123456789'
-    #[arg(short, long)]
+    #[arg(long)]
     pub forward_chat_id: Option<i64>,
+    /// 转发到的聊天的主题ID，请使用 --forward-topic-id='-123456789' 勿使用 --forward-topic-id '-123456789'
+    #[arg(long)]
+    pub forward_topic_id: Option<i64>,
     /// 回调地址
     #[arg(long)]
     pub webhook_url: Option<String>,

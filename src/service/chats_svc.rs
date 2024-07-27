@@ -23,7 +23,12 @@ pub async fn top(client_id: i32, limit: i32) -> anyhow::Result<()> {
             } else {
                 let enums::ForumTopics::ForumTopics(topics) = topics.unwrap();
                 for topic in topics.topics {
-                    tracing::info!("  └─ topic_id: {} title: {}", topic.info.message_thread_id, topic.info.name);
+                    let link = functions::get_forum_topic_link(chat_id, topic.info.message_thread_id, client_id).await;
+                    if let Ok(enums::MessageLink::MessageLink(link)) = link {
+                        tracing::info!("  └─ topic_id: {} title: {} link: {}", topic.info.message_thread_id, topic.info.name, link.link);
+                    } else {
+                        tracing::info!("  └─ topic_id: {} title: {} link: 获取失败", topic.info.message_thread_id, topic.info.name);
+                    }
                 }
             }
         }
