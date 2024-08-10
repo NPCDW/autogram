@@ -37,6 +37,9 @@ pub struct ChatArgs {
     /// 聊天消息内容
     #[arg(short, long)]
     pub message: String,
+    /// 在回复的消息中点击按钮
+    #[arg(long)]
+    pub type_button: Option<String>,
 }
 
 #[derive(Parser)]

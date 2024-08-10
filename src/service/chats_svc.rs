@@ -3,6 +3,7 @@ use tdlib_rs::{functions, enums};
 
 pub async fn top(client_id: i32, limit: i32) -> anyhow::Result<()> {
     // Run the get_me() method to get user information
+    tracing::info!("查找聊天");
     let chats = functions::get_chats(None, limit, client_id).await;
     if chats.is_err() {
         return Err(anyhow!("获取前二十个聊天列表失败: {:?}", chats.as_ref().err()));
@@ -25,9 +26,9 @@ pub async fn top(client_id: i32, limit: i32) -> anyhow::Result<()> {
                 for topic in topics.topics {
                     let link = functions::get_forum_topic_link(chat_id, topic.info.message_thread_id, client_id).await;
                     if let Ok(enums::MessageLink::MessageLink(link)) = link {
-                        tracing::info!("  └─ topic_id: {} title: {} link: {}", topic.info.message_thread_id, topic.info.name, link.link);
+                        tracing::info!("  └─ topic_id: {} link: {} title: {}", topic.info.message_thread_id, link.link, topic.info.name);
                     } else {
-                        tracing::info!("  └─ topic_id: {} title: {} link: 获取失败", topic.info.message_thread_id, topic.info.name);
+                        tracing::info!("  └─ topic_id: {} link: 获取失败 title: {}", topic.info.message_thread_id, topic.info.name);
                     }
                 }
             }

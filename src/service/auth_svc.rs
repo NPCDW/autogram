@@ -102,9 +102,9 @@ pub async fn handle_authorization_state(
                 tracing::info!("Login successful [{}]", me.first_name);
                 break;
             },
-            AuthorizationState::Closing => tracing::debug!("正在关闭客户端"),
+            AuthorizationState::Closing => tracing::info!("正在关闭客户端"),
             AuthorizationState::Closed => {
-                tracing::debug!("客户端已关闭");
+                tracing::info!("客户端已关闭");
                 run_flag.write().await.store(false, Ordering::Release);
                 break;
             },

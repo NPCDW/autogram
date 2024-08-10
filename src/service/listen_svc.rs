@@ -9,6 +9,7 @@ use super::init_svc::{InitData, SimpleMessage};
 pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Result<()> {
     let client_id = init_data.client_id;
     // 需要先把聊天找到，才能监听聊天消息
+    tracing::info!("查找聊天");
     let mut limit = 20;
     'find_chat: loop {
         tracing::debug!("查找聊天 limit: {}", limit);
@@ -27,7 +28,7 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
         }
         limit += 20;
     }
-    tracing::debug!("打开聊天");
+    tracing::info!("打开聊天");
     functions::open_chat(listen_param.chat_id, client_id).await.unwrap();
     if listen_param.history {
         tracing::debug!("查询历史消息");
@@ -40,8 +41,7 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
                 return Err(anyhow!("获取历史消息失败 {:?}", history.err()));
             }
             let enums::Messages::Messages(messages) = history.unwrap();
-            tracing::debug!("历史消息: {} {:?}", messages.total_count, messages.messages);
-            tracing::info!("{}", serde_json::to_string(&messages)?);
+            tracing::info!("历史消息: {}", serde_json::to_string(&messages)?);
             for msg in &messages.messages {
                 if let Some(msg) = msg {
                     let res = webhook(&SimpleMessage {
@@ -62,7 +62,7 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
             from_message_id = messages.messages[(messages.total_count - 1) as usize].as_ref().unwrap().id;
         }
     }
-    tracing::debug!("监听消息");
+    tracing::info!("监听消息");
     while let Some((new_msg, new_content)) = init_data.msg_rx.write().await.recv().await {
         let msg = if new_msg.is_some() {
             let msg = new_msg.unwrap();
@@ -80,13 +80,14 @@ pub async fn listen(init_data: InitData, listen_param: ListenArgs) -> anyhow::Re
             }
         };
         if msg.chat_id == listen_param.chat_id {
-            tracing::debug!("监听消息: {} {:?}", msg.id, msg.content);
+            tracing::info!("监听消息: {} {:?}", msg.id, msg.content);
             let res = webhook(&msg, &listen_param.webhook_url).await;
             if res.is_err() {
                 return Err(anyhow!("webhook 消息失败 {:?}", res.err()));
             }
         }
     }
+    tracing::info!("关闭聊天");
     functions::close_chat(listen_param.chat_id, client_id).await.unwrap();
     anyhow::Ok(())
 }

@@ -11,6 +11,7 @@ pub async fn follow(init_data: InitData, follow_param: FollowArgs) -> anyhow::Re
     if follow_param.forward_chat_id.is_some() {
         let forward_chat_id = follow_param.forward_chat_id.unwrap();
         // 需要先把聊天找到，才能监听聊天消息
+        tracing::info!("查找转发目标聊天");
         let mut limit = 20;
         'find_chat: loop {
             tracing::debug!("查找聊天 limit: {}", limit);
@@ -29,10 +30,10 @@ pub async fn follow(init_data: InitData, follow_param: FollowArgs) -> anyhow::Re
             }
             limit += 20;
         }
-        tracing::debug!("打开聊天");
+        tracing::info!("打开转发目标聊天");
         functions::open_chat(forward_chat_id, client_id).await.unwrap();
     }
-    tracing::debug!("监听消息");
+    tracing::info!("监听消息");
     while let Some((new_msg, _)) = init_data.msg_rx.write().await.recv().await {
         if let Some(msg) = new_msg {
             let msg = msg.message;
@@ -44,7 +45,7 @@ pub async fn follow(init_data: InitData, follow_param: FollowArgs) -> anyhow::Re
                 enums::MessageSender::Chat(chat) => chat.chat_id,
             };
             if follow_param.user_id.contains(&sender_id) {
-                tracing::debug!("监听消息: {} {:?}", msg.id, msg.content);
+                tracing::info!("监听消息: {} {:?}", msg.id, msg.content);
                 if follow_param.webhook_url.is_some() {
                     let msg = SimpleMessage {
                         id: msg.id,
@@ -92,6 +93,7 @@ pub async fn follow(init_data: InitData, follow_param: FollowArgs) -> anyhow::Re
     }
     if follow_param.forward_chat_id.is_some() {
         let forward_chat_id = follow_param.forward_chat_id.unwrap();
+        tracing::info!("关闭转发目标聊天");
         functions::close_chat(forward_chat_id, client_id).await.unwrap();
     }
     anyhow::Ok(())

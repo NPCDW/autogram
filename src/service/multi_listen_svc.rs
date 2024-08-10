@@ -9,6 +9,7 @@ use super::init_svc::{InitData, SimpleMessage};
 pub async fn listen(init_data: InitData, listen_param: MultiListenArgs) -> anyhow::Result<()> {
     let client_id = init_data.client_id;
     // 需要先把聊天找到，才能监听聊天
+    tracing::info!("查找聊天");
     let mut not_find = listen_param.chat_id.clone();
     let mut limit = 20;
     'find_chat: loop {
@@ -20,7 +21,7 @@ pub async fn listen(init_data: InitData, listen_param: MultiListenArgs) -> anyho
         let enums::Chats::Chats(chats) = chats.unwrap();
         for chat_id in &chats.chat_ids {
             if let Ok(index) = not_find.binary_search(chat_id) {
-                tracing::debug!("打开聊天 {}", chat_id);
+                tracing::info!("打开聊天 {}", chat_id);
                 functions::open_chat(chat_id.clone(), client_id).await.unwrap();
                 not_find.remove(index);
                 if not_find.len() == 0 {
@@ -33,7 +34,7 @@ pub async fn listen(init_data: InitData, listen_param: MultiListenArgs) -> anyho
         }
         limit += 20;
     }
-    tracing::debug!("监听消息");
+    tracing::info!("监听消息");
     while let Some((new_msg, new_content)) = init_data.msg_rx.write().await.recv().await {
         let msg = if new_msg.is_some() {
             let msg = new_msg.unwrap();
@@ -51,7 +52,7 @@ pub async fn listen(init_data: InitData, listen_param: MultiListenArgs) -> anyho
             }
         };
         if listen_param.chat_id.contains(&msg.chat_id) {
-            tracing::debug!("监听消息: {} {:?}", msg.id, msg.content);
+            tracing::info!("监听消息: {} {:?}", msg.id, msg.content);
             let res = webhook(&msg, &listen_param.webhook_url).await;
             if res.is_err() {
                 return Err(anyhow!("webhook 消息失败 {:?}", res.err()));
@@ -59,6 +60,7 @@ pub async fn listen(init_data: InitData, listen_param: MultiListenArgs) -> anyho
         }
     }
     for chat_id in listen_param.chat_id {
+        tracing::info!("关闭聊天 {}", chat_id);
         functions::close_chat(chat_id, client_id).await.unwrap();
     }
     anyhow::Ok(())
