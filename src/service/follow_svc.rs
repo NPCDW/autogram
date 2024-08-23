@@ -15,7 +15,11 @@ pub async fn follow(init_data: InitData, follow_param: FollowArgs) -> anyhow::Re
         let mut limit = 20;
         'find_chat: loop {
             tracing::debug!("查找聊天 limit: {}", limit);
-            let chats = functions::get_chats(None, limit, client_id).await;
+            let chats = if follow_param.forward_chat_archive {
+                functions::get_chats(Some(enums::ChatList::Archive), limit, client_id).await
+            } else {
+                functions::get_chats(None, limit, client_id).await
+            };
             if chats.is_err() {
                 return Err(anyhow!("获取聊天列表失败: {:?}", chats.as_ref().err()));
             }

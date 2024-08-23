@@ -26,7 +26,7 @@ async fn main() {
 
     match args.command {
         AppCommand::Chats(param) => {
-            let res = service::chats_svc::top(init_data.client_id, param.top).await;
+            let res = service::chats_svc::top(init_data.client_id, param).await;
             if res.is_err() {
                 tracing::error!("获取聊天列表失败: {:?}", res.err());
             }

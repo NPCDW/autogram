@@ -27,6 +27,9 @@ pub struct ChatsArgs {
     /// 查询前多少个聊天
     #[arg(short, long, default_value_t = 20)]
     pub top: i32,
+    /// 是否归档中的聊天
+    #[arg(short, long)]
+    pub archive: bool,
 }
 
 #[derive(Parser)]
@@ -37,6 +40,9 @@ pub struct ChatArgs {
     /// 聊天消息内容
     #[arg(short, long)]
     pub message: String,
+    /// 是否归档中的聊天
+    #[arg(short, long)]
+    pub archive: bool,
     /// 在回复的消息中点击按钮
     #[arg(long)]
     pub type_button: Option<String>,
@@ -47,6 +53,9 @@ pub struct ListenArgs {
     /// 聊天ID，请使用 --chat-id='-123456789' 勿使用 --chat-id '-123456789'
     #[arg(short, long)]
     pub chat_id: i64,
+    /// 是否归档中的聊天
+    #[arg(short, long)]
+    pub archive: bool,
     /// 是否查询历史消息
     #[arg(long)]
     pub history: bool,
@@ -63,6 +72,9 @@ pub struct MultiListenArgs {
     /// 聊天ID，请使用 --chat-id='-123456789' 勿使用 --chat-id '-123456789'
     #[arg(short, long)]
     pub chat_id: Vec<i64>,
+    /// 是否归档中的聊天
+    #[arg(short, long)]
+    pub archive: bool,
     /// 回调地址
     #[arg(long)]
     pub webhook_url: String,
@@ -79,6 +91,9 @@ pub struct FollowArgs {
     /// 转发到的聊天的主题ID，请使用 --forward-topic-id='-123456789' 勿使用 --forward-topic-id '-123456789'
     #[arg(long)]
     pub forward_topic_id: Option<i64>,
+    /// 是否归档中的聊天
+    #[arg(short, long)]
+    pub forward_chat_archive: bool,
     /// 回调地址
     #[arg(long)]
     pub webhook_url: Option<String>,

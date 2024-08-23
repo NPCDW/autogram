@@ -1,10 +1,16 @@
 use anyhow::anyhow;
 use tdlib_rs::{functions, enums};
 
-pub async fn top(client_id: i32, limit: i32) -> anyhow::Result<()> {
+use crate::config::args_conf::ChatsArgs;
+
+pub async fn top(client_id: i32, chats_param: ChatsArgs) -> anyhow::Result<()> {
     // Run the get_me() method to get user information
     tracing::info!("查找聊天");
-    let chats = functions::get_chats(None, limit, client_id).await;
+    let chats = if chats_param.archive {
+        functions::get_chats(Some(enums::ChatList::Archive), chats_param.top, client_id).await
+    } else {
+        functions::get_chats(None, chats_param.top, client_id).await
+    };
     if chats.is_err() {
         return Err(anyhow!("获取前二十个聊天列表失败: {:?}", chats.as_ref().err()));
     }
