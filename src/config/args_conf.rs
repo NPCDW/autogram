@@ -46,6 +46,12 @@ pub struct ChatArgs {
     /// 在回复的消息中点击按钮
     #[arg(long)]
     pub type_button: Option<String>,
+    /// 转发回复的第一条消息，防止对方删除，聊天ID
+    #[arg(long)]
+    pub forward_chat_id: Option<i64>,
+    /// 转发回复的第一条消息，防止对方删除，主题ID
+    #[arg(long)]
+    pub forward_topic_id: Option<i64>,
 }
 
 #[derive(Parser)]

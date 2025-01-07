@@ -63,6 +63,7 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
             }
         }
     }).await;
+    // 点击回复消息中的按钮
     if let Some(type_button) = chat_param.type_button {
         let _ = tokio::time::timeout(Duration::from_secs(5), async {
             while let Some((new_msg, update_msg)) = init_data.msg_rx.write().await.recv().await {
@@ -90,6 +91,26 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
                             }
                         } else {
                             tracing::error!("发送消息后，收到的消息没有任何按钮");
+                        }
+                    }
+                } else if let Some(update_msg) = update_msg {
+                    if update_msg.chat_id == chat_param.chat_id {
+                        tracing::info!("监听到消息内容变更: {} {:?}", update_msg.message_id, update_msg.new_content);
+                    }
+                }
+            }
+        }).await;
+    }
+    // 转发回复的消息
+    if let Some(forward_chat_id) = chat_param.forward_chat_id {
+        let _ = tokio::time::timeout(Duration::from_secs(5), async {
+            while let Some((new_msg, update_msg)) = init_data.msg_rx.write().await.recv().await {
+                if let Some(new_msg) = new_msg {
+                    if new_msg.message.chat_id == chat_param.chat_id {
+                        tracing::info!("监听消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_to);
+                        let forward_messages = functions::forward_messages(forward_chat_id, chat_param.forward_topic_id.unwrap_or(0), chat_param.chat_id, vec![new_msg.message.id], None, false, false, client_id).await;
+                        if forward_messages.is_err() {
+                            tracing::error!("转发消息失败: {:?}", forward_messages);
                         }
                     }
                 } else if let Some(update_msg) = update_msg {
