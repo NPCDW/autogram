@@ -51,7 +51,7 @@ pub async fn handle_already_login_state(
             }
             AuthorizationState::Ready => {
                 let User::User(me) = functions::get_me(client_id).await.unwrap();
-                tracing::info!("欢迎回来 [{}]", me.first_name);
+                tracing::info!("欢迎回来 [{}] [{}]", me.first_name, me.id);
                 break;
             }
             _ => {
