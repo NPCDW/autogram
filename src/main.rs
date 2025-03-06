@@ -32,7 +32,7 @@ async fn main() {
             }
         },
         AppCommand::Chat(param) => {
-            let res = service::chat_svc::chat_and_retry(init_data.clone(), param).await;
+            let res = service::chat_svc::chat(init_data.clone(), param).await;
             if res.is_err() {
                 tracing::error!("发送聊天消息失败: {:?}", res.err());
             }
@@ -44,7 +44,7 @@ async fn main() {
                     tracing::error!("解析聊天参数失败: {:?}", chat.err());
                     continue;
                 }
-                let res = service::chat_svc::chat_and_retry(init_data.clone(), chat.unwrap()).await;
+                let res = service::chat_svc::chat(init_data.clone(), chat.unwrap()).await;
                 if res.is_err() {
                     tracing::error!("发送多个聊天消息失败: {:?}", res.err());
                     continue;

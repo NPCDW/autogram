@@ -46,7 +46,7 @@ pub struct ChatArgs {
     pub message: String,
     /// 是否归档中的聊天
     #[arg(short, long)]
-    pub archive: bool,
+    pub archive: Option<bool>,
     /// 在回复的消息中点击按钮
     #[arg(long)]
     pub type_button: Option<String>,

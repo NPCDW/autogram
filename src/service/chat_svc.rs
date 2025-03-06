@@ -7,21 +7,6 @@ use crate::config::args_conf::ChatArgs;
 
 use super::init_svc::InitData;
 
-pub async fn chat_and_retry(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<()> {
-    let mut count = 1;
-    loop {
-        let timeout = tokio::time::timeout(tokio::time::Duration::from_secs(30), async {
-            chat(init_data.clone(), chat_param.clone()).await
-        }).await;
-        if timeout.is_ok() {
-            return timeout.unwrap();
-        } else if count > 3 {
-            return Err(anyhow::anyhow!("重试次数超过3次，仍未能执行成功"));
-        }
-        count += 1;  
-    }
-}
-
 pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<()> {
     let client_id = init_data.client_id;
     // 需要先把聊天找到，才能向聊天发送消息
@@ -29,7 +14,7 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
     let mut limit = 20;
     'find_chat: loop {
         tracing::debug!("查找聊天 limit: {}", limit);
-        let chats = if chat_param.archive {
+        let chats = if let Some(true) = chat_param.archive {
             functions::get_chats(Some(enums::ChatList::Archive), limit, client_id).await
         } else {
             functions::get_chats(None, limit, client_id).await
