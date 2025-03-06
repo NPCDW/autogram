@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use serde::Deserialize;
 
 #[derive(Subcommand)]
 pub enum AppCommand {
@@ -11,6 +12,9 @@ pub enum AppCommand {
     /// 向一个聊天发送消息
     #[command()]
     Chat(ChatArgs),
+    /// 向多个聊天发送消息
+    #[command()]
+    MultiChat(MultiChatArgs),
     /// 监听一个聊天
     #[command()]
     Listen(ListenArgs),
@@ -32,7 +36,7 @@ pub struct ChatsArgs {
     pub archive: bool,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Deserialize, Clone)]
 pub struct ChatArgs {
     /// 聊天ID，请使用 --chat-id='-123456789' 勿使用 --chat-id '-123456789'
     #[arg(short, long)]
@@ -52,6 +56,13 @@ pub struct ChatArgs {
     /// 转发回复的第一条消息，防止对方删除，主题ID
     #[arg(long)]
     pub forward_topic_id: Option<i64>,
+}
+
+#[derive(Parser)]
+pub struct MultiChatArgs {
+    /// 聊天ID，请使用 --chat-id='-123456789' 勿使用 --chat-id '-123456789'
+    #[arg(short, long)]
+    pub chat: Vec<String>,
 }
 
 #[derive(Parser)]

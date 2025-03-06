@@ -7,6 +7,21 @@ use crate::config::args_conf::ChatArgs;
 
 use super::init_svc::InitData;
 
+pub async fn chat_and_retry(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<()> {
+    let mut count = 1;
+    loop {
+        let timeout = tokio::time::timeout(tokio::time::Duration::from_secs(30), async {
+            chat(init_data.clone(), chat_param.clone()).await
+        }).await;
+        if timeout.is_ok() {
+            return timeout.unwrap();
+        } else if count > 3 {
+            return Err(anyhow::anyhow!("重试次数超过3次，仍未能执行成功"));
+        }
+        count += 1;  
+    }
+}
+
 pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<()> {
     let client_id = init_data.client_id;
     // 需要先把聊天找到，才能向聊天发送消息
@@ -76,6 +91,7 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
                                     for button in row {
                                         tracing::debug!("按钮: {:?}", button);
                                         if button.text == type_button {
+                                            tokio::time::sleep(tokio::time::Duration::from_millis(700)).await;
                                             if let enums::InlineKeyboardButtonType::Callback(button_type) = button.r#type {
                                                 let payload = enums::CallbackQueryPayload::Data(types::CallbackQueryPayloadData { data: button_type.data });
                                                 let res = functions::get_callback_query_answer(chat_param.chat_id, new_msg.message.id, payload, client_id).await;
@@ -90,7 +106,8 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
                                 }
                             }
                         } else {
-                            tracing::error!("发送消息后，收到的消息没有任何按钮");
+                            tracing::error!("最新收到的消息没有任何按钮");
+                            break;
                         }
                     }
                 } else if let Some(update_msg) = update_msg {
