@@ -44,8 +44,8 @@ pub async fn guess_code(init_data: InitData, guess_code_param: GuessCodeArgs) ->
         };
         code_list.push(code);
     }
-    let mut code_final_list = vec![];
-    for code in code_list {
+    'next_code: for code in code_list {
+        let mut code_final_list = vec![];
         if guess_code_param.rule.contains("A") {
             for c in 'A'..='Z' {
                 code_final_list.push(code.replace("@", &c.to_string()));
@@ -61,53 +61,53 @@ pub async fn guess_code(init_data: InitData, guess_code_param: GuessCodeArgs) ->
                 code_final_list.push(code.replace("@", &c.to_string()));
             }
         }
-    }
-    'next_code: for code in code_final_list {
-        tracing::info!("发送消息");
-        let message = functions::send_message(guess_code_param.chat_id, 0, None, None, 
-            enums::InputMessageContent::InputMessageText(types::InputMessageText {
-                text: types::FormattedText {
-                    text: format!("/start {}", code),
-                    entities: vec![]
-                },
-                link_preview_options: None,
-                clear_draft: true
-            }), client_id).await;
-        if message.is_err() {
-            return Err(anyhow!("发送消息失败: {:?}", message.as_ref().err()));
-        }
-        let enums::Message::Message(message) = message.unwrap();
-        tracing::info!("发送消息中 id: {} content: {:?}", message.id, message.content);
-        // 等待回复
-        while let Some((new_msg, update_msg)) = init_data.msg_rx.write().await.recv().await {
-            if let Some(new_msg) = new_msg {
-                if new_msg.message.chat_id == guess_code_param.chat_id {
-                    tracing::info!("监听新消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_markup);
-                    if new_msg.message.id == message.id {
-                        tracing::info!("消息 {} 发送成功", message.id);
-                        continue;
+        'next_char: for code in code_final_list {
+            tracing::info!("发送消息");
+            let message = functions::send_message(guess_code_param.chat_id, 0, None, None, 
+                enums::InputMessageContent::InputMessageText(types::InputMessageText {
+                    text: types::FormattedText {
+                        text: format!("/start {}", code),
+                        entities: vec![]
+                    },
+                    link_preview_options: None,
+                    clear_draft: true
+                }), client_id).await;
+            if message.is_err() {
+                return Err(anyhow!("发送消息失败: {:?}", message.as_ref().err()));
+            }
+            let enums::Message::Message(message) = message.unwrap();
+            tracing::info!("发送消息中 id: {} content: {:?}", message.id, message.content);
+            // 等待回复
+            while let Some((new_msg, update_msg)) = init_data.msg_rx.write().await.recv().await {
+                if let Some(new_msg) = new_msg {
+                    if new_msg.message.chat_id == guess_code_param.chat_id {
+                        tracing::info!("监听新消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_markup);
+                        if new_msg.message.id == message.id {
+                            tracing::info!("消息 {} 发送成功", message.id);
+                            continue;
+                        }
+                        let content = match &new_msg.message.content {
+                            enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
+                            enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
+                            enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
+                            enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
+                            enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
+                            _ => "暂不支持的消息类型".to_string(),
+                        };
+                        if content.contains("请确认好重试") {
+                            continue 'next_char;
+                        } else if content.contains("注册码已被使用") {
+                            continue 'next_code;
+                        } else if content.contains("您已进入注册状态") {
+                            break 'next_code;
+                        } else {
+                            continue 'next_char;
+                        }
                     }
-                    let content = match &new_msg.message.content {
-                        enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
-                        enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
-                        enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
-                        enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
-                        enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
-                        _ => "暂不支持的消息类型".to_string(),
-                    };
-                    if content.contains("请确认好重试") {
-                        continue 'next_code;
-                    } else if content.contains("注册码已被使用") {
-                        continue 'next_code;
-                    } else if content.contains("您已进入注册状态") {
-                        break 'next_code;
-                    } else {
-                        continue 'next_code;
+                } else if let Some(update_msg) = update_msg {
+                    if update_msg.chat_id == guess_code_param.chat_id {
+                        tracing::info!("监听到消息内容变更: {} {:?}", update_msg.message_id, update_msg.new_content);
                     }
-                }
-            } else if let Some(update_msg) = update_msg {
-                if update_msg.chat_id == guess_code_param.chat_id {
-                    tracing::info!("监听到消息内容变更: {} {:?}", update_msg.message_id, update_msg.new_content);
                 }
             }
         }
