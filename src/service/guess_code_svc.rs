@@ -31,6 +31,8 @@ pub async fn guess_code(init_data: InitData, guess_code_param: GuessCodeArgs) ->
         }
         limit += 20;
     }
+    tracing::info!("打开聊天");
+    functions::open_chat(guess_code_param.chat_id, client_id).await.unwrap();
     let mut code_list = vec![];
     let code_split = guess_code_param.code.split(",").collect::<Vec<&str>>();
     for code in code_split {
@@ -61,8 +63,6 @@ pub async fn guess_code(init_data: InitData, guess_code_param: GuessCodeArgs) ->
         }
     }
     'next_code: for code in code_final_list {
-        tracing::info!("打开聊天");
-        functions::open_chat(guess_code_param.chat_id, client_id).await.unwrap();
         tracing::info!("发送消息");
         let message = functions::send_message(guess_code_param.chat_id, 0, None, None, 
             enums::InputMessageContent::InputMessageText(types::InputMessageText {
