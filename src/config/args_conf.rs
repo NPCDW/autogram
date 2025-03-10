@@ -24,6 +24,9 @@ pub enum AppCommand {
     /// 关注一个用户
     #[command()]
     Follow(FollowArgs),
+    /// 猜码游戏
+    #[command()]
+    GuessCode(GuessCodeArgs),
 }
 
 #[derive(Parser)]
@@ -114,6 +117,28 @@ pub struct FollowArgs {
     /// 回调地址
     #[arg(long)]
     pub webhook_url: Option<String>,
+}
+
+#[derive(Parser)]
+pub struct GuessCodeArgs {
+    /// 猜码机器人聊天ID
+    #[arg(short, long)]
+    pub chat_id: i64,
+    /// 是否归档中的聊天
+    #[arg(short, long)]
+    pub archive: Option<bool>,
+    /// 邀请码，多个码以逗号分割
+    #[arg(short, long)]
+    pub code: String,
+    /// 猜码规则， Aa0
+    #[arg(short, long)]
+    pub rule: String,
+    /// 预注册ID
+    #[arg(short, long)]
+    pub pre_register_id: String,
+    /// 预注册安全码
+    #[arg(short, long)]
+    pub pre_register_security_code: String,
 }
 
 #[derive(Parser)]

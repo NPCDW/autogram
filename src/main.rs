@@ -69,6 +69,12 @@ async fn main() {
                 tracing::error!("关注用户动向失败: {:?}", res.err());
             }
         },
+        AppCommand::GuessCode(param) => {
+            let res = service::guess_code_svc::guess_code(init_data.clone(), param).await;
+            if res.is_err() {
+                tracing::error!("关注用户动向失败: {:?}", res.err());
+            }
+        },
         _ => (),
     }
     service::init_svc::close(init_data).await;
