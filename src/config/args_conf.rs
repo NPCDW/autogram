@@ -133,12 +133,6 @@ pub struct GuessCodeArgs {
     /// 猜码规则， Aa0
     #[arg(long)]
     pub rule: String,
-    /// 预注册ID
-    #[arg(long)]
-    pub pre_register_id: String,
-    /// 预注册安全码
-    #[arg(long)]
-    pub pre_register_security_code: String,
 }
 
 #[derive(Parser)]
