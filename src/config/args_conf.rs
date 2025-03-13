@@ -128,17 +128,11 @@ pub struct GuessCodeArgs {
     #[arg(short, long)]
     pub archive: Option<bool>,
     /// 邀请码，多个码以逗号分割
-    #[arg(short, long)]
+    #[arg(long)]
     pub code: String,
     /// 猜码规则， Aa0
-    #[arg(short, long)]
+    #[arg(long)]
     pub rule: String,
-    /// 预注册ID
-    #[arg(short, long)]
-    pub pre_register_id: String,
-    /// 预注册安全码
-    #[arg(short, long)]
-    pub pre_register_security_code: String,
 }
 
 #[derive(Parser)]
