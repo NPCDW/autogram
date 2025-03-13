@@ -66,7 +66,7 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
     // 点击回复消息中的按钮
     if let Some(type_button) = chat_param.type_button {
         let _ = tokio::time::timeout(Duration::from_secs(5), async {
-            while let Some((new_msg, update_msg)) = init_data.msg_rx.write().await.recv().await {
+            'receiving_messages: while let Some((new_msg, update_msg)) = init_data.msg_rx.write().await.recv().await {
                 if let Some(new_msg) = new_msg {
                     if new_msg.message.chat_id == chat_param.chat_id {
                         tracing::info!("监听消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_markup);
@@ -82,8 +82,10 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
                                                 let res = functions::get_callback_query_answer(chat_param.chat_id, new_msg.message.id, payload, client_id).await;
                                                 if let Ok(enums::CallbackQueryAnswer::CallbackQueryAnswer(answer)) = res {
                                                     tracing::info!("内嵌键盘点击成功: {:?}", answer);
+                                                    break 'receiving_messages;
                                                 } else {
                                                     tracing::error!("内嵌键盘点击 error: {:?}", res);
+                                                    break 'receiving_messages;
                                                 }
                                             }
                                         }
@@ -92,7 +94,6 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
                             }
                         } else {
                             tracing::error!("最新收到的消息没有任何按钮");
-                            break;
                         }
                     }
                 } else if let Some(update_msg) = update_msg {
