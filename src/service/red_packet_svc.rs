@@ -34,12 +34,12 @@ pub async fn grab(init_data: InitData, listen_param: RedPacketArgs) -> anyhow::R
     tracing::info!("打开聊天");
     functions::open_chat(listen_param.chat_id, client_id).await.unwrap();
     tracing::info!("监听消息");
-    while let Some((new_msg, _new_content)) = init_data.msg_rx.write().await.recv().await {
+    while let Some((new_msg, new_content)) = init_data.msg_rx.write().await.recv().await {
         if let Some(new_msg) = new_msg {
             if new_msg.message.chat_id == listen_param.chat_id {
+                tracing::debug!("监听到新消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_markup);
                 if let Some(reply) = new_msg.message.reply_markup {
                     if let enums::ReplyMarkup::InlineKeyboard(reply) = reply {
-                        tracing::info!("监听到带按钮消息: {} {:?}", new_msg.message.id, new_msg.message.content);
                         for row in reply.rows {
                             for button in row {
                                 tracing::debug!("按钮: {:?}", button);
@@ -57,9 +57,11 @@ pub async fn grab(init_data: InitData, listen_param: RedPacketArgs) -> anyhow::R
                             }
                         }
                     }
-                } else {
-                    tracing::error!("最新收到的消息没有任何按钮");
                 }
+            }
+        } if let Some(new_content) = new_content {
+            if new_content.chat_id == listen_param.chat_id {
+                tracing::debug!("监听到内容变更消息: {} {:?}", new_content.message_id, new_content.new_content);
             }
         }
     }
