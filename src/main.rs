@@ -75,6 +75,12 @@ async fn main() {
                 tracing::error!("关注用户动向失败: {:?}", res.err());
             }
         },
+        AppCommand::RedPacket(param) => {
+            let res = service::red_packet_svc::grab(init_data.clone(), param).await;
+            if res.is_err() {
+                tracing::error!("抢红包失败: {:?}", res.err());
+            }
+        },
         _ => (),
     }
     service::init_svc::close(init_data).await;

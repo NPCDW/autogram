@@ -7,3 +7,4 @@ pub mod listen_svc;
 pub mod multi_listen_svc;
 pub mod follow_svc;
 pub mod guess_code_svc;
+pub mod red_packet_svc;

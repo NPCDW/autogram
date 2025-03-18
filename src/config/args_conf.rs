@@ -27,6 +27,9 @@ pub enum AppCommand {
     /// 猜码游戏
     #[command()]
     GuessCode(GuessCodeArgs),
+    /// 抢红包游戏
+    #[command()]
+    RedPacket(RedPacketArgs),
 }
 
 #[derive(Parser)]
@@ -133,6 +136,19 @@ pub struct GuessCodeArgs {
     /// 猜码规则， Aa0
     #[arg(long)]
     pub rule: String,
+}
+
+#[derive(Parser)]
+pub struct RedPacketArgs {
+    /// 聊天ID，请使用 --chat-id='-123456789' 勿使用 --chat-id '-123456789'
+    #[arg(short, long)]
+    pub chat_id: i64,
+    /// 是否归档中的聊天
+    #[arg(short, long)]
+    pub archive: bool,
+    /// 点击按钮
+    #[arg(long)]
+    pub type_button: String,
 }
 
 #[derive(Parser)]
