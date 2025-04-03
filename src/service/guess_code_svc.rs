@@ -33,91 +33,104 @@ pub async fn guess_code(init_data: InitData, guess_code_param: GuessCodeArgs) ->
     }
     tracing::info!("打开聊天");
     functions::open_chat(guess_code_param.chat_id, client_id).await.unwrap();
-    let mut code_list = vec![];
-    let code_split = guess_code_param.code.split(",").collect::<Vec<&str>>();
-    for code in code_split {
-        let code = code.split("=").collect::<Vec<&str>>();
-        let code = if code.len() > 1 {
-            code[1]
-        } else {
-            code[0]
-        };
-        code_list.push(code);
+
+    if !guess_code_param.code.contains("*") {
+        tracing::info!("{} 不包含 * 字符，猜码格式不正确", guess_code_param.code);
+        return anyhow::Ok(());
     }
-    'next_code: for code in code_list {
-        if !code.contains("@") {
-            tracing::info!("{} 不包含 @ 字符，猜码格式不正确", code);
-            continue;
+    let blank = guess_code_param.code.replace("*", "");
+    if blank.len() + 1 < guess_code_param.code.len() {
+        return Err(anyhow::anyhow!("出现了太多的 * 请确保只有一个"));
+    }
+    let mut code_final_list = vec![];
+    if guess_code_param.rule.contains("A") {
+        for c in 'A'..='Z' {
+            code_final_list.push(guess_code_param.code.replace("*", &c.to_string()));
         }
-        let mut code_final_list = vec![];
-        if guess_code_param.rule.contains("A") {
-            for c in 'A'..='Z' {
-                code_final_list.push(code.replace("@", &c.to_string()));
+    }
+    if guess_code_param.rule.contains("a") {
+        for c in 'a'..='z' {
+            code_final_list.push(guess_code_param.code.replace("*", &c.to_string()));
+        }
+    }
+    if guess_code_param.rule.contains("0") {
+        for c in 0..=9 {
+            code_final_list.push(guess_code_param.code.replace("*", &c.to_string()));
+        }
+    }
+    // 将一个码所有的可能全部发送
+    for code in code_final_list {
+        tracing::info!("发送消息");
+        let message = functions::send_message(guess_code_param.chat_id, 0, None, None, 
+            enums::InputMessageContent::InputMessageText(types::InputMessageText {
+                text: types::FormattedText {
+                    text: format!("/start {}", code),
+                    entities: vec![]
+                },
+                link_preview_options: None,
+                clear_draft: true
+            }), client_id).await;
+        if message.is_err() {
+            return Err(anyhow!("发送消息失败: {:?}", message.as_ref().err()));
+        }
+        let enums::Message::Message(message) = message.unwrap();
+        tracing::info!("发送消息中 id: {} content: {:?}", message.id, message.content);
+        if let Some(true) = guess_code_param.speed {} else {
+            let status = wait_code_status(&init_data, &guess_code_param).await;
+            if status == CodeStatus::Continue {
+                continue;
+            } else {
+                break;
             }
         }
-        if guess_code_param.rule.contains("a") {
-            for c in 'a'..='z' {
-                code_final_list.push(code.replace("@", &c.to_string()));
-            }
-        }
-        if guess_code_param.rule.contains("0") {
-            for c in 0..=9 {
-                code_final_list.push(code.replace("@", &c.to_string()));
-            }
-        }
-        // 将一个码所有的可能全部发送
-        for code in code_final_list {
-            tracing::info!("发送消息");
-            let message = functions::send_message(guess_code_param.chat_id, 0, None, None, 
-                enums::InputMessageContent::InputMessageText(types::InputMessageText {
-                    text: types::FormattedText {
-                        text: format!("/start {}", code),
-                        entities: vec![]
-                    },
-                    link_preview_options: None,
-                    clear_draft: true
-                }), client_id).await;
-            if message.is_err() {
-                return Err(anyhow!("发送消息失败: {:?}", message.as_ref().err()));
-            }
-            let enums::Message::Message(message) = message.unwrap();
-            tracing::info!("发送消息中 id: {} content: {:?}", message.id, message.content);
-        }
-        // 等待回复
-        while let Some((new_msg, update_msg)) = init_data.msg_rx.write().await.recv().await {
-            if let Some(new_msg) = new_msg {
-                if new_msg.message.chat_id == guess_code_param.chat_id {
-                    tracing::info!("监听新消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_markup);
-                    let content = match &new_msg.message.content {
-                        enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
-                        enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
-                        enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
-                        enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
-                        enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
-                        _ => "暂不支持的消息类型".to_string(),
-                    };
-                    if content.starts_with("/start") {
-                        tracing::info!("消息 {} 发送成功", new_msg.message.id);
-                        continue;
-                    }
-                    if content.contains("请确认好重试") {
-                        continue;
-                    } else if content.contains("注册码已被使用") {
-                        continue 'next_code;
-                    } else if content.contains("您已进入注册状态") || content.contains("邀请注册资格") {
-                        break 'next_code;
-                    } else {
-                        continue;
-                    }
-                }
-            } else if let Some(update_msg) = update_msg {
-                if update_msg.chat_id == guess_code_param.chat_id {
-                    tracing::info!("监听到消息内容变更: {} {:?}", update_msg.message_id, update_msg.new_content);
-                }
-            }
-        }
+    }
+    if let Some(true) = guess_code_param.speed {
+        wait_code_status(&init_data, &guess_code_param).await;
     }
     tracing::info!("关闭聊天");
     functions::close_chat(guess_code_param.chat_id, client_id).await.unwrap();
     anyhow::Ok(())
+}
+
+#[derive(PartialEq)]
+enum CodeStatus {
+    Continue,
+    End,
+}
+
+async fn wait_code_status(init_data: &InitData, guess_code_param: &GuessCodeArgs) -> CodeStatus {
+    // 等待回复
+    while let Some((new_msg, update_msg)) = init_data.msg_rx.write().await.recv().await {
+        if let Some(new_msg) = new_msg {
+            if new_msg.message.chat_id == guess_code_param.chat_id {
+                tracing::info!("监听新消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_markup);
+                let content = match &new_msg.message.content {
+                    enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
+                    enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
+                    enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
+                    enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
+                    enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
+                    _ => "暂不支持的消息类型".to_string(),
+                };
+                if content.starts_with("/start") {
+                    tracing::info!("消息 {} 发送成功", new_msg.message.id);
+                    continue;
+                }
+                if content.contains("请确认好重试") {
+                    return CodeStatus::Continue;
+                } else if content.contains("注册码已被使用") {
+                    return CodeStatus::End;
+                } else if content.contains("您已进入注册状态") || content.contains("邀请注册资格") {
+                    return CodeStatus::End;
+                } else {
+                    continue;
+                }
+            }
+        } else if let Some(update_msg) = update_msg {
+            if update_msg.chat_id == guess_code_param.chat_id {
+                tracing::info!("监听到消息内容变更: {} {:?}", update_msg.message_id, update_msg.new_content);
+            }
+        }
+    }
+    return CodeStatus::End;
 }

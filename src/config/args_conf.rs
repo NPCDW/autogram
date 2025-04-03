@@ -136,6 +136,9 @@ pub struct GuessCodeArgs {
     /// 猜码规则， Aa0
     #[arg(long)]
     pub rule: String,
+    /// 猜码速度
+    #[arg(long)]
+    pub speed: Option<bool>,
 }
 
 #[derive(Parser)]
