@@ -30,6 +30,9 @@ pub enum AppCommand {
     /// 抢红包游戏
     #[command()]
     RedPacket(RedPacketArgs),
+    /// 创建账号
+    #[command()]
+    CreateAccount(CreateAccountArgs),
 }
 
 #[derive(Parser)]
@@ -152,6 +155,22 @@ pub struct RedPacketArgs {
     /// 点击按钮
     #[arg(long)]
     pub type_button: String,
+}
+
+#[derive(Parser)]
+pub struct CreateAccountArgs {
+    /// 聊天ID，请使用 --chat-id='-123456789' 勿使用 --chat-id '-123456789'
+    #[arg(short, long)]
+    pub chat_id: i64,
+    /// 是否归档中的聊天
+    #[arg(short, long)]
+    pub archive: bool,
+    /// 账户名
+    #[arg(long)]
+    pub account_name: String,
+    /// 安全码
+    #[arg(long)]
+    pub security_code: String,
 }
 
 #[derive(Parser)]
