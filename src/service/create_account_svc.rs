@@ -72,7 +72,7 @@ pub async fn create(init_data: InitData, param: CreateAccountArgs) -> anyhow::Re
                                                     tokio::time::sleep(tokio::time::Duration::from_millis(param.type_button_interval_mills)).await;
                                                     continue;
                                                 }
-                                                break;
+                                                continue 'receiving_messages;
                                             } else {
                                                 tracing::error!("内嵌键盘点击 error: {:?}", res);
                                                 tokio::time::sleep(tokio::time::Duration::from_millis(param.type_button_interval_mills)).await;
