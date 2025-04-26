@@ -69,12 +69,14 @@ pub async fn create(init_data: InitData, param: CreateAccountArgs) -> anyhow::Re
                                                     break 'receiving_messages;
                                                 }
                                                 if answer.text.contains("自助注册已关闭") {
+                                                    tokio::time::sleep(tokio::time::Duration::from_millis(param.type_button_interval_mills)).await;
                                                     continue;
                                                 }
                                                 break;
+                                            } else {
+                                                tracing::error!("内嵌键盘点击 error: {:?}", res);
+                                                tokio::time::sleep(tokio::time::Duration::from_millis(param.type_button_interval_mills)).await;
                                             }
-                                            tracing::error!("内嵌键盘点击 error: {:?}", res);
-                                            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
                                         }
                                     }
                                 }

@@ -171,6 +171,9 @@ pub struct CreateAccountArgs {
     /// 安全码
     #[arg(long)]
     pub security_code: String,
+    /// 点击创建按钮的间隔时间
+    #[arg(short, long)]
+    pub type_button_interval_mills: u64,
 }
 
 #[derive(Parser)]
