@@ -50,7 +50,7 @@ pub async fn create(init_data: InitData, param: CreateAccountListenArgs) -> anyh
                     enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
                     _ => "".to_string(),
                 };
-                if content.contains("自由注册") && content.contains("已开启") {
+                if (content.contains("自由注册") || content.contains("定时注册")) && content.contains("已开启") {
                     break 'receiving_messages;
                 }
             }
