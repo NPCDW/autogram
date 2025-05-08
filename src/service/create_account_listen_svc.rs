@@ -57,7 +57,7 @@ pub async fn create(init_data: InitData, param: CreateAccountListenArgs) -> anyh
         }
     }
     super::create_account_svc::create(init_data, CreateAccountArgs {
-        chat_id: param.bot_chat_id,
+        chat_id: param.bot_id,
         archive: param.bot_archive,
         account_name: param.account_name.clone(),
         security_code: param.security_code.clone(),

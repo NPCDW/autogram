@@ -36,6 +36,9 @@ pub enum AppCommand {
     /// 创建账号（监听群内机器人发送的开注消息，前往机器人注册）
     #[command()]
     CreateAccountListen(CreateAccountListenArgs),
+    /// 多聊天监听创建账号（监听群内机器人发送的开注消息，前往机器人注册）
+    #[command()]
+    MultiCreateAccountListen(MultiCreateAccountListenArgs),
 }
 
 #[derive(Parser)]
@@ -179,14 +182,12 @@ pub struct CreateAccountArgs {
     pub type_button_interval_mills: u64,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Deserialize, Clone)]
 pub struct CreateAccountListenArgs {
     /// 聊天ID，请使用 --chat-id='-123456789' 勿使用 --chat-id '-123456789'
     #[arg(short, long)]
     pub chat_id: i64,
     /// bot聊天ID，请使用 --bot-chat-id='-123456789' 勿使用 --bot-chat-id '-123456789'
-    #[arg(short, long)]
-    pub bot_chat_id: i64,
     /// bot ID，请使用 --bot-id='-123456789' 勿使用 --bot-id '-123456789'
     #[arg(short, long)]
     pub bot_id: i64,
@@ -202,6 +203,12 @@ pub struct CreateAccountListenArgs {
     /// 安全码
     #[arg(long)]
     pub security_code: String,
+}
+
+#[derive(Parser)]
+pub struct MultiCreateAccountListenArgs {
+    #[arg(short, long)]
+    pub multi: Vec<String>,
 }
 
 #[derive(Parser)]

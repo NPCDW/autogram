@@ -10,3 +10,4 @@ pub mod guess_code_svc;
 pub mod red_packet_svc;
 pub mod create_account_svc;
 pub mod create_account_listen_svc;
+pub mod multi_create_account_listen_svc;

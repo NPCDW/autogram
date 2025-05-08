@@ -93,6 +93,12 @@ async fn main() {
                 tracing::error!("创建账户失败: {:?}", res.err());
             }
         },
+        AppCommand::MultiCreateAccountListen(param) => {
+            let res = service::multi_create_account_listen_svc::create(init_data.clone(), param).await;
+            if res.is_err() {
+                tracing::error!("创建账户失败: {:?}", res.err());
+            }
+        },
         _ => (),
     }
     service::init_svc::close(init_data).await;
