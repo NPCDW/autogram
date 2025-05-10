@@ -64,13 +64,16 @@ pub struct ChatArgs {
     pub archive: Option<bool>,
     /// 在回复的消息中点击按钮
     #[arg(long)]
-    pub type_button: Option<String>,
+    pub type_button: Option<Vec<String>>,
     /// 转发回复的第一条消息，防止对方删除，聊天ID
     #[arg(long)]
     pub forward_chat_id: Option<i64>,
     /// 转发回复的第一条消息，防止对方删除，主题ID
     #[arg(long)]
     pub forward_topic_id: Option<i64>,
+    /// 执行超时时间，默认5秒
+    #[arg(long)]
+    pub timeout: Option<u64>,
 }
 
 #[derive(Parser)]
