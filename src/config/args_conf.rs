@@ -74,6 +74,9 @@ pub struct ChatArgs {
     /// 执行超时时间，默认5秒
     #[arg(long)]
     pub timeout: Option<u64>,
+    /// 执行超时时间，默认5秒
+    #[arg(long)]
+    pub single_step_timeout: Option<u64>,
 }
 
 #[derive(Parser)]

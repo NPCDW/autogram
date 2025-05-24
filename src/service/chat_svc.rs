@@ -72,10 +72,12 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
                     if new_msg.message.chat_id == chat_param.chat_id {
                         tracing::info!("监听消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_markup);
                         if let Some(reply) = new_msg.message.reply_markup {
-                            match type_reply_button(reply, chat_param.chat_id, new_msg.message.id, client_id, type_index, &type_button).await {
-                                Err(e) => tracing::error!("点击按钮失败: {:?}", e),
-                                Ok(false) => (),
-                                Ok(true) => {
+                            let type_res = tokio::time::timeout(Duration::from_secs(chat_param.single_step_timeout.unwrap_or(5)),
+                            type_reply_button(reply, chat_param.chat_id, new_msg.message.id, client_id, type_index, &type_button)).await;
+                            match type_res {
+                                Ok(Ok(false)) => (),
+                                Ok(Err(e)) => tracing::error!("点击按钮失败: {:?}", e),
+                                _ => {
                                     type_index += 1;
                                     if type_index >= type_button.len() {
                                         break;
@@ -91,10 +93,12 @@ pub async fn chat(init_data: InitData, chat_param: ChatArgs) -> anyhow::Result<(
                         if let Ok(enums::Message::Message(message)) = res {
                             tracing::info!("获取消息内容变更: {} {:?} {:?}", message.id, message.content, message.reply_markup);
                             if let Some(reply) = message.reply_markup {
-                                match type_reply_button(reply, chat_param.chat_id, message.id, client_id, type_index, &type_button).await {
-                                    Err(e) => tracing::error!("点击按钮失败: {:?}", e),
-                                    Ok(false) => (),
-                                    Ok(true) => {
+                                let type_res = tokio::time::timeout(Duration::from_secs(chat_param.single_step_timeout.unwrap_or(5)),
+                                type_reply_button(reply, chat_param.chat_id, message.id, client_id, type_index, &type_button)).await;
+                                match type_res {
+                                    Ok(Ok(false)) => (),
+                                    Ok(Err(e)) => tracing::error!("点击按钮失败: {:?}", e),
+                                    _ => {
                                         type_index += 1;
                                         if type_index >= type_button.len() {
                                             break;
