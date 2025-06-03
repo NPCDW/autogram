@@ -53,6 +53,20 @@ pub async fn create(init_data: InitData, param: CreateAccountListenArgs) -> anyh
                 if (content.contains("自由注册") || content.contains("定时注册")) && content.contains("已开启") {
                     break 'receiving_messages;
                 }
+                if let Some(code_prefix) = &param.code_prefix {
+                    let lines = content.split("\n").collect::<Vec<&str>>();
+                    for line in lines {
+                        if line.starts_with(code_prefix) {
+                            let res = crate::service::guess_code_svc::use_code(&init_data, line, param.bot_id, Some(param.bot_archive), client_id).await;
+                            if let Err(err) = res {
+                                tracing::error!("使用注册码失败: {}", err);
+                            } else {
+                                tracing::info!("使用注册码成功 {}", line);
+                                return anyhow::Ok(());
+                            }
+                        }
+                    }
+                }
             }
         }
     }

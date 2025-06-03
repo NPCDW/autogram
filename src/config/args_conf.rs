@@ -153,7 +153,7 @@ pub struct GuessCodeArgs {
     pub rule: String,
     /// 猜码速度
     #[arg(long)]
-    pub speed: Option<bool>,
+    pub fast: Option<bool>,
 }
 
 #[derive(Parser)]
@@ -200,6 +200,9 @@ pub struct CreateAccountListenArgs {
     /// 是否归档中的聊天
     #[arg(short, long)]
     pub archive: bool,
+    /// 注册码前缀
+    #[arg(short, long)]
+    pub code_prefix: Option<String>,
     /// bot chat是否归档中的聊天
     #[arg(short, long)]
     pub bot_archive: bool,
