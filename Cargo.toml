@@ -15,9 +15,9 @@ tracing-subscriber = { version = "0.3.19", features = ["env-filter", "time", "lo
 
 time = "0.3.41"
 
-tdlib-rs-gen = "1.1.0"
-tdlib-rs-parser = "1.1.0"
-tdlib-rs = { version = "1.1.0", features = [ "download-tdlib" ] }
+tdlib-rs-gen = "1.0.5"
+tdlib-rs-parser = "1.0.5"
+tdlib-rs = { version = "1.0.5", features = [ "download-tdlib" ] }
 
 clap = { version = "4.5.39", features = ["derive"] }
 
