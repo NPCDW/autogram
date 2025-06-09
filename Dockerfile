@@ -2,7 +2,8 @@ FROM ubuntu:latest AS rust-build
 
 RUN apt-get update && apt -y install curl libc++1 build-essential pkg-config libssl-dev
 
-RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf -o rustup.sh && sh rustup.sh -y && bash -c "echo source $HOME/.cargo/env >> /etc/bash.bashrc"
+RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf -o rustup.sh && sh rustup.sh -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 WORKDIR /usr/src/autogram
 COPY ./ ./
