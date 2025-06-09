@@ -1,6 +1,6 @@
 FROM ubuntu:latest AS rust-build
 
-RUN apt-get update && apt -y install libc++1 build-essential pkg-config libssl-dev
+RUN apt-get update && apt -y install curl libc++1 build-essential pkg-config libssl-dev
 
 RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf -o rustup.sh && sh rustup.sh -y && bash -c "echo source $HOME/.cargo/env >> /etc/bash.bashrc"
 
