@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 
-RUN apt-get update && apt-get install -y curl wget unzip openssh-server git libc++1
+RUN apt-get update && apt-get install -y curl wget unzip openssh-server git libc++1 build-essential pkg-config libssl-dev
 
 RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf -o rustup.sh
 RUN sh rustup.sh -y
