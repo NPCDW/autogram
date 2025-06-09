@@ -1,4 +1,6 @@
-FROM mcr.microsoft.com/devcontainers/rust:latest
+FROM ubuntu:latest
+
+RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf > rustup.sh && sh rustup.sh -y && sudo bash -c "echo source $HOME/.cargo/env >> /etc/bash.bashrc"
 
 RUN curl -fsSL https://code-server.dev/install.sh | sh
 RUN code-server --install-extension MS-CEINTL.vscode-language-pack-zh-hans
