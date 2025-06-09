@@ -1,4 +1,10 @@
 $:
+  vscode:
+    - docker:
+        build: .ide/Dockerfile
+      services:
+        - vscode
+        - docker
   push:
     - imports: https://cnb.cool/my-codespace/envs/-/blob/main/github-secret.yml
       stages:
