@@ -158,6 +158,13 @@ async fn type_reply_button(reply: enums::ReplyMarkup, chat_id: i64, message_id: 
                         } else {
                             return Err(anyhow!("内嵌键盘点击 error: {:?}", res));
                         }
+                    } else if let enums::InlineKeyboardButtonType::WebApp(button_type) = button.r#type {
+                        let res = functions::open_web_app(chat_id, chat_id, button_type.url, None, "应用名称".to_string(), 0, None, client_id).await;
+                        if let Ok(enums::WebAppInfo::WebAppInfo(web_app_info)) = res {
+                            tracing::info!("内嵌键盘点击成功: {:?}", web_app_info);
+                        } else {
+                            return Err(anyhow!("内嵌键盘点击 error: {:?}", res));
+                        }
                     }
                 }
             }
