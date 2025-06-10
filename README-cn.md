@@ -2,7 +2,7 @@
 
 [![rust](https://img.shields.io/badge/rust-1.78.0-f17d3e.svg)](https://www.rust-lang.org)
 [![tdlib](https://img.shields.io/badge/tdlib-1.8.29-blue.svg)](https://github.com/tdlib/td)
-[![tdlib-rs](https://img.shields.io/badge/tdlib_rs-1.0.3-fedcba.svg)](https://github.com/FedericoBruzzone/tdlib-rs)
+[![tdlib-rs](https://img.shields.io/badge/tdlib_rs-1.1.0-fedcba.svg)](https://github.com/FedericoBruzzone/tdlib-rs)
 
 中文 | [English](./README.md)
 

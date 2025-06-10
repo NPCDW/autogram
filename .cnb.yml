@@ -5,6 +5,7 @@ $:
       services:
         - vscode
         - docker
+      imports: https://cnb.cool/my-codespace/envs/-/blob/main/autogram-secret.yml
   push:
     - imports: https://cnb.cool/my-codespace/envs/-/blob/main/github-secret.yml
       stages:
