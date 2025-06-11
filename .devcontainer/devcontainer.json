@@ -1,15 +1,15 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/rust:latest",
+  "image": "docker.cnb.cool/my-codespace/autogram/dockerfile-caches:latest",
   "features": {
   },
-  "postCreateCommand": "sudo apt update -y && sudo apt-get install -y libc++1",
   "customizations": {
     "vscode": {
       "extensions": [
         "rust-lang.rust-analyzer",
         "tamasfe.even-better-toml",
-        "vadimcn.vscode-lldb",
-        "fill-labs.dependi"
+        "njzy.stats-bar",
+        "fill-labs.dependi",
+        "donjayamanne.githistory"
       ]
     }
   }

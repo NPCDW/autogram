@@ -70,7 +70,7 @@ pub async fn init(already_login: bool) -> InitData {
     // Set a fairly low verbosity level. We mainly do this because tdlib
     // requires to perform a random request with the client to start receiving
     // updates for it.
-    functions::set_log_verbosity_level(1, client_id).await.unwrap();
+    functions::set_log_verbosity_level(2, client_id).await.unwrap();
 
     // Handle the authorization state to authenticate the client
     let auth_rx = Arc::new(RwLock::new(auth_rx));
