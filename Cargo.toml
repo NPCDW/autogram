@@ -1,6 +1,6 @@
 [package]
 name = "autogram"
-version = "0.21.6"
+version = "0.21.7"
 edition = "2021"
 
 [dependencies]
@@ -19,8 +19,8 @@ tdlib-rs-gen = "1.1.0"
 tdlib-rs-parser = "1.1.0"
 tdlib-rs = { version = "1.1.0", features = [ "download-tdlib" ] }
 
-clap = { version = "4.5.39", features = ["derive"] }
+clap = { version = "4.5.40", features = ["derive"] }
 
 anyhow = "1.0.98"
 
-reqwest = { version = "0.12.19", features = ["json"] }
+reqwest = { version = "0.12.20", features = ["json"] }
