@@ -40,30 +40,30 @@ pub async fn create(init_data: InitData, param: CreateAccountListenArgs) -> anyh
                 enums::MessageSender::User(user) => user.user_id,
                 enums::MessageSender::Chat(chat) => chat.chat_id,
             };
+            let content = match &new_msg.message.content {
+                enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
+                enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
+                enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
+                enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
+                enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
+                _ => "".to_string(),
+            };
             if new_msg.message.chat_id == param.chat_id && sender_id == param.bot_id {
-                tracing::info!("监听消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_markup);
-                let content = match &new_msg.message.content {
-                    enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
-                    enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
-                    enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
-                    enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
-                    enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
-                    _ => "".to_string(),
-                };
+                tracing::info!("监听bot消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_markup);
                 if (content.contains("自由注册") || content.contains("定时注册")) && content.contains("已开启") {
                     break 'receiving_messages;
                 }
-                if let Some(code_prefix) = &param.code_prefix {
-                    let lines = content.split("\n").collect::<Vec<&str>>();
-                    for line in lines {
-                        if line.starts_with(code_prefix) {
-                            let res = crate::service::guess_code_svc::use_code(&init_data, line, param.bot_id, Some(param.bot_archive), client_id).await;
-                            if let Err(err) = res {
-                                tracing::error!("使用注册码失败: {}", err);
-                            } else {
-                                tracing::info!("使用注册码成功 {}", line);
-                                return anyhow::Ok(());
-                            }
+            }
+            if let Some(code_prefix) = &param.code_prefix {
+                let lines = content.split("\n").collect::<Vec<&str>>();
+                for line in lines {
+                    if line.starts_with(code_prefix) {
+                        let res = crate::service::guess_code_svc::use_code(&init_data, line, param.bot_id, Some(param.bot_archive), client_id).await;
+                        if let Err(err) = res {
+                            tracing::error!("使用注册码失败: {} {}", line, err);
+                        } else {
+                            tracing::info!("使用注册码成功 {}", line);
+                            return anyhow::Ok(());
                         }
                     }
                 }

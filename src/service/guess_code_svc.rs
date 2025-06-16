@@ -100,7 +100,7 @@ enum CodeStatus {
 
 static ONCE: tokio::sync::OnceCell<anyhow::Result<()>> = tokio::sync::OnceCell::const_new();
 
-pub async fn use_code(init_data: &InitData, code: &str, chat_id: i64, archive: Option<bool>, client_id: i32) -> anyhow::Result<()> {
+pub async fn use_code(init_data: &InitData, code: &str, bot_id: i64, archive: Option<bool>, client_id: i32) -> anyhow::Result<()> {
     if code.contains("*") || code.contains("?") || code.contains("░") || code.contains("@") || code.contains("#") || code.contains("!") || code.contains("$") || code.contains("%") || code.contains("^") || code.contains("&") {
         return Err(anyhow::anyhow!("注册码包含非法字符"));
     }
@@ -119,22 +119,22 @@ pub async fn use_code(init_data: &InitData, code: &str, chat_id: i64, archive: O
             }
             let enums::Chats::Chats(chats) = chats.unwrap();
             if chats.chat_ids.len() < limit as usize && limit > 20 {
-                return Err(anyhow!("未找到ID为 {} 的聊天", chat_id));
+                return Err(anyhow!("未找到ID为 {} 的聊天", bot_id));
             }
             for chat_id in chats.chat_ids {
-                if chat_id == chat_id {
+                if chat_id == bot_id {
                     break 'find_chat;
                 }
             }
             limit += 20;
         }
         tracing::info!("打开聊天");
-        functions::open_chat(chat_id, client_id).await.unwrap();
+        functions::open_chat(bot_id, client_id).await.unwrap();
         anyhow::Ok(())
     }).await;
 
     tracing::info!("发送消息");
-    let message = functions::send_message(chat_id, 0, None, None, 
+    let message = functions::send_message(bot_id, 0, None, None, 
         enums::InputMessageContent::InputMessageText(types::InputMessageText {
             text: types::FormattedText {
                 text: format!("/start {}", code.replace(" ", "")),
@@ -148,7 +148,7 @@ pub async fn use_code(init_data: &InitData, code: &str, chat_id: i64, archive: O
     }
     let enums::Message::Message(message) = message.unwrap();
     tracing::info!("发送消息中 id: {} content: {:?}", message.id, message.content);
-    let status = wait_code_status(&init_data, chat_id).await;
+    let status = wait_code_status(&init_data, bot_id).await;
     if status == CodeStatus::Continue {
         return Err(anyhow::anyhow!("注册码已被使用"));
     }
