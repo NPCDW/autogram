@@ -49,48 +49,50 @@ pub async fn create(init_data: InitData, param: MultiCreateAccountListenArgs) ->
     let chat_ids = args.keys().collect::<Vec<&i64>>();
     'receiving_messages: while let Some((new_msg, _update_msg)) = init_data.msg_rx.write().await.recv().await {
         if let Some(new_msg) = new_msg {
-            let sender_id = match new_msg.message.sender_id {
-                enums::MessageSender::User(user) => user.user_id,
-                enums::MessageSender::Chat(chat) => chat.chat_id,
-            };
-            let content = match &new_msg.message.content {
-                enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
-                enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
-                enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
-                enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
-                enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
-                _ => "".to_string(),
-            };
-            if chat_ids.contains(&&new_msg.message.chat_id) && sender_id == args[&new_msg.message.chat_id].bot_id {
-                tracing::info!("监听消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_markup);
-                if (content.contains("自由注册") || content.contains("定时注册")) && content.contains("已开启") {
-                    let init_data_clone = init_data.clone();
-                    let arg_clone = args[&new_msg.message.chat_id].clone();
-                    tokio::spawn(async move {
-                        let res = super::create_account_svc::create(init_data_clone, CreateAccountArgs {
-                            chat_id: arg_clone.bot_id,
-                            archive: arg_clone.bot_archive,
-                            account_name: arg_clone.account_name.clone(),
-                            security_code: arg_clone.security_code.clone(),
-                            type_button_interval_mills: 100,
-                        }).await;
-                        if let Err(e) = res {
-                            tracing::error!("创建账号失败: {:?}", e)
-                        }
-                    });
-                    continue 'receiving_messages;
+            if chat_ids.contains(&&new_msg.message.chat_id) {
+                let sender_id = match new_msg.message.sender_id {
+                    enums::MessageSender::User(user) => user.user_id,
+                    enums::MessageSender::Chat(chat) => chat.chat_id,
+                };
+                let content = match &new_msg.message.content {
+                    enums::MessageContent::MessageText(msg) => msg.text.text.clone(),
+                    enums::MessageContent::MessagePhoto(msg) => msg.caption.text.clone(),
+                    enums::MessageContent::MessageAudio(msg) => msg.caption.text.clone(),
+                    enums::MessageContent::MessageDocument(msg) => msg.caption.text.clone(),
+                    enums::MessageContent::MessageVideo(msg) => msg.caption.text.clone(),
+                    _ => "".to_string(),
+                };
+                if sender_id == args[&new_msg.message.chat_id].bot_id {
+                    tracing::info!("监听消息: {} {:?} {:?}", new_msg.message.id, new_msg.message.content, new_msg.message.reply_markup);
+                    if (content.contains("自由注册") || content.contains("定时注册")) && content.contains("已开启") {
+                        let init_data_clone = init_data.clone();
+                        let arg_clone = args[&new_msg.message.chat_id].clone();
+                        tokio::spawn(async move {
+                            let res = super::create_account_svc::create(init_data_clone, CreateAccountArgs {
+                                chat_id: arg_clone.bot_id,
+                                archive: arg_clone.bot_archive,
+                                account_name: arg_clone.account_name.clone(),
+                                security_code: arg_clone.security_code.clone(),
+                                type_button_interval_mills: 100,
+                            }).await;
+                            if let Err(e) = res {
+                                tracing::error!("创建账号失败: {:?}", e)
+                            }
+                        });
+                        continue 'receiving_messages;
+                    }
                 }
-            }
-            if let Some(code_prefix) = args[&new_msg.message.chat_id].code_prefix.clone() {
-                let lines = content.split("\n").collect::<Vec<&str>>();
-                for line in lines {
-                    if line.starts_with(&code_prefix) {
-                        let res = crate::service::guess_code_svc::use_code(&init_data, line, args[&new_msg.message.chat_id].bot_id, Some(args[&new_msg.message.chat_id].bot_archive), client_id).await;
-                        if let Err(err) = res {
-                            tracing::error!("使用注册码失败: {}", err);
-                        } else {
-                            tracing::info!("使用注册码成功 {}", line);
-                            return anyhow::Ok(());
+                if let Some(code_prefix) = args[&new_msg.message.chat_id].code_prefix.clone() {
+                    let lines = content.split("\n").collect::<Vec<&str>>();
+                    for line in lines {
+                        if line.starts_with(&code_prefix) {
+                            let res = crate::service::guess_code_svc::use_code(&init_data, line, args[&new_msg.message.chat_id].bot_id, Some(args[&new_msg.message.chat_id].bot_archive), client_id).await;
+                            if let Err(err) = res {
+                                tracing::error!("使用注册码失败: {}", err);
+                            } else {
+                                tracing::info!("使用注册码成功 {}", line);
+                                return anyhow::Ok(());
+                            }
                         }
                     }
                 }
